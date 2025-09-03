@@ -1,10 +1,12 @@
 import streamlit as st
 import time
+from datetime import datetime, timedelta
 from config.settings import get_settings
 from services.cache import cached_list_user_repos
 from services.github_client import to_repo_summary
-from services.analytics import filter_repos, languages_set
+from services.analytics import filter_repos, languages_set, language_distribution, commits_per_repo, commits_over_time, heatmap_counts
 from ui.components import render_stat_cards, render_repo_table
+from ui.charts import render_language_pie, render_commits_bar, render_trend_line, render_heatmap
 
 st.set_page_config(
     page_title="GitHub Project Tracker Dashboard",
@@ -72,6 +74,17 @@ def main():
             help="Search repositories by name (case-insensitive)"
         )
         
+        # Visualization controls
+        st.sidebar.markdown("---")
+        st.sidebar.header("📊 Visualizations")
+        
+        max_repos = st.sidebar.selectbox(
+            "Max Repositories for Charts",
+            options=[5, 10, 20],
+            index=1,
+            help="Number of repositories to analyze for commit-based charts"
+        )
+        
         # Clear filters button
         if st.sidebar.button("🗑️ Clear All Filters"):
             st.rerun()
@@ -112,6 +125,57 @@ def main():
                 ] if f])})")
         else:
             st.info(f"Showing all {len(all_repo_summaries)} repositories")
+        
+        # Visualizations Section
+        st.markdown("---")
+        st.header("📊 Visualizations")
+        
+        if filtered_repos:
+            # Calculate time window for commit-based charts
+            until_dt = datetime.utcnow()
+            since_dt = until_dt - timedelta(days=activity_days)
+            since_iso = since_dt.replace(microsecond=0).isoformat() + 'Z'
+            until_iso = until_dt.replace(microsecond=0).isoformat() + 'Z'
+            
+            # Create two columns for charts
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Language Distribution Pie Chart
+                st.subheader("🎯 Language Distribution")
+                lang_dist = language_distribution(filtered_repos)
+                render_language_pie(lang_dist)
+                
+                # Commits Over Time
+                st.subheader("📈 Commit Trends")
+                try:
+                    trend_data = commits_over_time(filtered_repos, settings.github_token, since_iso, until_iso, max_repos)
+                    render_trend_line(trend_data)
+                except Exception as e:
+                    st.warning(f"Unable to fetch commit trend data: {str(e)[:100]}...")
+                    st.info("This chart requires API access to commit data.")
+            
+            with col2:
+                # Commits per Repository Bar Chart
+                st.subheader("📊 Commits per Repository")
+                try:
+                    commits_data = commits_per_repo(filtered_repos, settings.github_token, since_iso, until_iso, max_repos)
+                    render_commits_bar(commits_data)
+                except Exception as e:
+                    st.warning(f"Unable to fetch commits per repository: {str(e)[:100]}...")
+                    st.info("This chart requires API access to commit data.")
+                
+                # Activity Heatmap
+                st.subheader("🔥 Activity Heatmap")
+                try:
+                    heatmap_data = heatmap_counts(filtered_repos, settings.github_token, since_iso, until_iso, max_repos)
+                    render_heatmap(heatmap_data)
+                except Exception as e:
+                    st.warning(f"Unable to fetch heatmap data: {str(e)[:100]}...")
+                    st.info("This chart requires API access to commit data.")
+        
+        else:
+            st.info("📊 No repositories available for visualization. Try adjusting your filters.")
     
     except RuntimeError as e:
         st.error(f"Configuration Error: {e}")

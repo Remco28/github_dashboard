@@ -52,3 +52,11 @@ def cached_list_user_repos(username: str, token: str, cache_bust: str = None) ->
     """Cached version of list_user_repos. cache_bust parameter can be used to bypass cache."""
     from services.github_client import list_user_repos
     return list_user_repos(username, token)
+
+
+# Cached wrapper for list_repo_commits with 5-minute TTL
+@ttl_cache(300)  # 5 minutes
+def cached_list_repo_commits(owner: str, repo: str, token: str, since: str, until: str) -> list:
+    """Cached version of list_repo_commits."""
+    from services.github_client import list_repo_commits
+    return list_repo_commits(owner, repo, token, since, until)

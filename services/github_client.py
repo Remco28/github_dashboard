@@ -86,3 +86,58 @@ def get_repo_languages(owner: str, repo: str, token: str) -> Dict[str, int]:
         )
     
     return response.json()
+
+
+def list_repo_commits(owner: str, repo: str, token: str, since: str, until: str, max_pages: int = 2) -> List[Dict]:
+    """
+    List commits for a repository within a time window with bounded pagination.
+    
+    Args:
+        owner: Repository owner
+        repo: Repository name
+        token: GitHub token
+        since: ISO datetime string (start of window)
+        until: ISO datetime string (end of window)  
+        max_pages: Maximum number of pages to fetch (default 2 to limit API calls)
+        
+    Returns:
+        List of commit dictionaries
+    """
+    url = f"{GITHUB_API}/repos/{owner}/{repo}/commits"
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github+json"
+    }
+    params = {
+        "since": since,
+        "until": until,
+        "per_page": 100
+    }
+    
+    commits = []
+    pages_fetched = 0
+    
+    while url and pages_fetched < max_pages:
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+        
+        if response.status_code == 404:
+            # Repository might be empty or not accessible
+            break
+            
+        if response.status_code >= 400:
+            error_text = response.text[:200] if response.text else "No error details"
+            raise RuntimeError(
+                f"GitHub API error {response.status_code}: {error_text}"
+            )
+        
+        page_commits = response.json()
+        commits.extend(page_commits)
+        
+        pages_fetched += 1
+        
+        # Get next page URL from Link header
+        url = parse_next_link(response.headers.get("Link"))
+        # Clear params for subsequent requests since URL contains them
+        params = None
+    
+    return commits
