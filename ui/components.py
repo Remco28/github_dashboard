@@ -125,3 +125,100 @@ def render_repo_table(repo_summaries: list[RepoSummary]) -> None:
         },
         column_order=["Name", "Private", "Stars", "Forks", "Open Issues", "Language", "Last Push", "URL"]
     )
+
+
+def render_theme_toggle() -> str:
+    """Render theme toggle and return selected theme."""
+    theme = st.sidebar.selectbox(
+        "Appearance", 
+        ["Auto", "Light", "Dark"], 
+        index=0, 
+        help="Choose dashboard theme"
+    )
+    st.session_state["theme"] = theme
+    return theme
+
+
+def apply_theme(theme: str) -> None:
+    """Apply theme CSS based on selected theme."""
+    if theme == "Dark":
+        # Dark theme CSS
+        st.markdown("""
+        <style>
+        .stApp {
+            background-color: #0e1117;
+            color: #fafafa;
+        }
+        .stSidebar {
+            background-color: #262730;
+        }
+        .stSelectbox > div > div {
+            background-color: #262730;
+            color: #fafafa;
+        }
+        .stTextInput > div > div {
+            background-color: #262730;
+            color: #fafafa;
+        }
+        .stMultiSelect > div > div {
+            background-color: #262730;
+            color: #fafafa;
+        }
+        .stMetric {
+            background-color: #1e1e1e;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #333;
+        }
+        .stDataFrame {
+            background-color: #1e1e1e;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+    elif theme == "Light":
+        # Light theme CSS
+        st.markdown("""
+        <style>
+        .stApp {
+            background-color: #ffffff;
+            color: #262730;
+        }
+        .stSidebar {
+            background-color: #f0f2f6;
+        }
+        .stMetric {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e9ecef;
+        }
+        .stDataFrame {
+            background-color: #ffffff;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+    # For "Auto" theme, no custom CSS is applied (Streamlit default)
+
+
+def render_settings_help(username: str) -> None:
+    """Render settings help panel in sidebar."""
+    with st.sidebar.expander("Settings Help"):
+        st.write(f"GitHub Username: **{username or 'Not set'}**")
+        st.write("Token: loaded from environment (not displayed)")
+        
+        st.markdown("**Setup Steps:**")
+        st.markdown("""
+        • Create `.env` file with `GITHUB_TOKEN` and `GITHUB_USERNAME`
+        • Token needs `repo` scope for private repos, `public_repo` for public only
+        • Check `.env.example` for format reference
+        • Rate limits: 5000/hour authenticated, 60/hour unauthenticated
+        • Use cache controls if hitting rate limits frequently
+        """)
+        
+        st.markdown("**Common Issues:**")
+        st.markdown("""
+        • **Empty repositories:** Check username spelling and token permissions
+        • **Authentication errors:** Verify token is valid and has required scopes
+        • **Rate limits:** Use "Bypass Cache" sparingly, or wait for reset
+        • **Missing data:** Try refreshing or clearing cache
+        """)

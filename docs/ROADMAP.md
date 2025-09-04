@@ -58,6 +58,7 @@ This roadmap breaks delivery into clear, reviewable stages aligned to PROJECT.md
 - Acceptance: App remains responsive under failures; rate limits show reset info; cache controls work; standardized messages across sections.
 
 ## Phase 7 – Polish & Docs (0.5 day)
+- Status: Completed
 - Goals: Usability polish, docs, and configuration.
 - Scope: Theming toggle, README usage, `.env.example`, configuration help.
 - Deliverables: Updated README, screenshots/gifs, `.env.example`, settings help panel.

@@ -38,3 +38,9 @@
 [2025-09-03 20:30] [Architect]: REVIEW PASS: Phase 6 Robustness & Performance meets spec; archived spec.
 [2025-09-03 20:30] [Architect]: ARCHIVED: Moved Phase 6 spec to comms/tasks/archive/2025-09-03-robustness-and-performance.md.
 [2025-09-03 20:30] [Architect]: DOCS UPDATED: ROADMAP set Phase 6 to Completed.
+[2025-09-04 09:10] [Architect]: SPEC READY: Phase 7 Polish & Docs at comms/tasks/2025-09-04-polish-and-docs.md.
+[2025-09-04 09:25] [Architect]: REVIEW PASS: Phase 7 Polish & Docs implementation meets spec and acceptance criteria.
+[2025-09-04 09:25] [Architect]: ARCHIVED: Moved Phase 7 spec to comms/tasks/archive/2025-09-04-polish-and-docs.md.
+[2025-09-04 09:25] [Architect]: DOCS UPDATED: ROADMAP Phase 7 marked Completed; README and screenshots verified.
+[2025-09-04 09:11] [Developer]: IMPL IN_PROGRESS: Implementing Phase 7 Polish & Docs with theme toggle, settings help panel, README, and screenshots
+[2025-09-04 09:15] [Developer]: IMPL DONE: Completed Phase 7 Polish & Docs - added theme toggle (Auto/Light/Dark), settings help panel with setup guidance, comprehensive README with all sections, placeholder screenshots, and enhanced .env.example comments

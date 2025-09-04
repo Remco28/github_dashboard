@@ -9,7 +9,7 @@ from services.cache import cached_fetch_next_steps
 from services.next_steps import parse_next_steps
 from services.gamification import compute_activity_dates, assign_badges, detect_stale_repos
 from services.errors import RateLimitError
-from ui.components import render_stat_cards, render_repo_table
+from ui.components import render_stat_cards, render_repo_table, render_theme_toggle, apply_theme, render_settings_help
 from ui.charts import render_language_pie, render_commits_bar, render_trend_line, render_heatmap
 from ui.checklists import render_aggregate, render_repo_next_steps, render_missing_next_steps_guidance
 from ui.gamification import render_badges, render_streaks, render_stale_nudges
@@ -124,6 +124,12 @@ def main():
             help="Repositories without pushes for this many days are considered stale"
         )
         
+        # Appearance controls
+        st.sidebar.markdown("---")
+        st.sidebar.header("🎨 Appearance")
+        selected_theme = render_theme_toggle()
+        apply_theme(selected_theme)
+        
         # Cache controls (continued)
         st.sidebar.markdown("---")
         st.sidebar.header("💾 Cache Controls")
@@ -136,6 +142,9 @@ def main():
         # Show cache stats
         stats = cache_stats()
         render_cache_info(stats)
+        
+        # Settings help panel
+        render_settings_help(settings.github_username)
         
         # Clear filters button
         if st.sidebar.button("🗑️ Clear All Filters"):
