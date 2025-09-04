@@ -2,7 +2,7 @@ import streamlit as st
 import time
 from datetime import datetime, timedelta
 from config.settings import get_settings
-from services.cache import cached_list_user_repos, cached_list_repo_commits, cached_compute_streaks, clear_cache, cache_stats
+from services.cache import cached_list_user_repos, cached_list_repo_commits, cached_compute_streaks, clear_cache, cache_stats, cache_metrics
 from services.github_client import to_repo_summary
 from services.analytics import filter_repos, languages_set, language_distribution, commits_per_repo, commits_over_time, heatmap_counts
 from services.cache import cached_fetch_next_steps
@@ -134,9 +134,11 @@ def main():
             st.sidebar.success("Cache cleared!")
             st.rerun()
         
-        # Show cache stats
+        # Show cache stats with telemetry
         stats = cache_stats()
-        render_cache_info(stats)
+        telemetry = cache_metrics()
+        merged_stats = {**stats, **telemetry}
+        render_cache_info(merged_stats)
         
         # Settings help panel
         render_settings_help(settings.github_username)
@@ -145,13 +147,19 @@ def main():
         if st.sidebar.button("🗑️ Clear All Filters"):
             st.rerun()
         
+        # Calculate time window for commit-based charts (used in Visualizations and Motivation)
+        until_dt = datetime.utcnow()
+        since_dt = until_dt - timedelta(days=activity_days)
+        since_iso = since_dt.replace(microsecond=0).isoformat() + 'Z'
+        until_iso = until_dt.replace(microsecond=0).isoformat() + 'Z'
+
         # Apply filters
         include_private = None
         if visibility_option == "Private":
             include_private = True
         elif visibility_option == "Public":
             include_private = False
-        
+
         filtered_repos = filter_repos(
             all_repo_summaries,
             languages=set(selected_languages) if selected_languages else None,
@@ -188,75 +196,77 @@ def main():
         # Visualizations Section
         st.markdown("---")
         st.header("📊 Visualizations")
-        
+
         if filtered_repos:
-            # Calculate time window for commit-based charts
-            until_dt = datetime.utcnow()
-            since_dt = until_dt - timedelta(days=activity_days)
-            since_iso = since_dt.replace(microsecond=0).isoformat() + 'Z'
-            until_iso = until_dt.replace(microsecond=0).isoformat() + 'Z'
-            
+            # Refresh button for charts
+            charts_refresh_pressed = st.button("🔄 Refresh Charts", key="charts_refresh", help="Refresh chart data bypassing cache")
+            charts_cache_bust = str(time.time()) if charts_refresh_pressed else None
+
             # Create two columns for charts
             col1, col2 = st.columns(2)
-            
+
             with col1:
                 # Language Distribution Pie Chart
                 st.subheader("🎯 Language Distribution")
                 lang_dist = language_distribution(filtered_repos)
                 render_language_pie(lang_dist)
-                
+
                 # Commits Over Time
                 st.subheader("📈 Commit Trends")
                 try:
-                    trend_data = commits_over_time(filtered_repos, settings.github_token, since_iso, until_iso, max_repos)
+                    trend_data = commits_over_time(filtered_repos, settings.github_token, since_iso, until_iso, max_repos, cache_bust=charts_cache_bust)
                     render_trend_line(trend_data)
                 except RateLimitError as e:
                     render_section_error("Commit Trends", e)
                 except Exception as e:
                     render_section_error("Commit Trends", e)
-            
+
             with col2:
                 # Commits per Repository Bar Chart
                 st.subheader("📊 Commits per Repository")
                 try:
-                    commits_data = commits_per_repo(filtered_repos, settings.github_token, since_iso, until_iso, max_repos)
+                    commits_data = commits_per_repo(filtered_repos, settings.github_token, since_iso, until_iso, max_repos, cache_bust=charts_cache_bust)
                     render_commits_bar(commits_data)
                 except RateLimitError as e:
                     render_section_error("Commits per Repository", e)
                 except Exception as e:
                     render_section_error("Commits per Repository", e)
-                
+
                 # Activity Heatmap
                 st.subheader("🔥 Activity Heatmap")
                 try:
-                    heatmap_data = heatmap_counts(filtered_repos, settings.github_token, since_iso, until_iso, max_repos)
+                    heatmap_data = heatmap_counts(filtered_repos, settings.github_token, since_iso, until_iso, max_repos, cache_bust=charts_cache_bust)
                     render_heatmap(heatmap_data)
                 except RateLimitError as e:
                     render_section_error("Activity Heatmap", e)
                 except Exception as e:
                     render_section_error("Activity Heatmap", e)
-        
+
         else:
             st.info("📊 No repositories available for visualization. Try adjusting your filters.")
         
         # NEXT_STEPS Section
         st.markdown("---")
         st.header("📝 Project Tasks (NEXT_STEPS)")
-        
+
         if filtered_repos:
+            # Refresh button for NEXT_STEPS
+            next_steps_refresh_pressed = st.button("🔄 Refresh NEXT_STEPS", key="next_steps_refresh", help="Refresh NEXT_STEPS data bypassing cache")
+            next_steps_cache_bust = str(time.time()) if next_steps_refresh_pressed else None
+
             with st.spinner("Loading NEXT_STEPS data..."):
                 # Limit to first 20 repos to keep API calls bounded
                 repos_to_process = filtered_repos[:20]
-                
+
                 # Fetch NEXT_STEPS.md files
                 next_steps_docs = {}
                 missing_files_count = 0
-                
+
                 for repo in repos_to_process:
                     owner, name = repo.full_name.split('/', 1)
-                    
+
                     try:
-                        md_content = cached_fetch_next_steps(owner, name, settings.github_token)
+                        md_content = cached_fetch_next_steps(owner, name, settings.github_token, next_steps_cache_bust)
                         if md_content:
                             doc = parse_next_steps(md_content, repo.full_name)
                             next_steps_docs[repo.full_name] = doc
@@ -314,22 +324,26 @@ def main():
         # Motivation Section (Streaks & Badges)
         st.markdown("---")
         st.header("🏆 Motivation")
-        
+
         if filtered_repos:
+            # Refresh button for Motivation
+            motivation_refresh_pressed = st.button("🔄 Refresh Motivation", key="motivation_refresh", help="Refresh motivation data bypassing cache")
+            motivation_cache_bust = str(time.time()) if motivation_refresh_pressed else None
+
             try:
                 with st.spinner("Computing activity streaks and badges..."):
                     # Use same bounded repo set as visualizations
                     repos_to_analyze = filtered_repos[:max_repos]
-                    
+
                     # Fetch commit data for streak computation
                     commits_by_repo = {}
                     rate_limited = False
-                    
+
                     for repo in repos_to_analyze:
                         owner, name = repo.full_name.split('/', 1)
-                        
+
                         try:
-                            commits = cached_list_repo_commits(owner, name, settings.github_token, since_iso, until_iso)
+                            commits = cached_list_repo_commits(owner, name, settings.github_token, since_iso, until_iso, motivation_cache_bust)
                             commits_by_repo[repo.full_name] = commits
                         except RateLimitError:
                             rate_limited = True

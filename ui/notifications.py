@@ -102,57 +102,69 @@ def render_last_updated(ts: Optional[float], label: str = "Data") -> None:
 def render_cache_info(cache_stats: dict) -> None:
     """
     Render cache statistics information.
-    
+
     Args:
         cache_stats: Dictionary containing cache statistics
     """
     count = cache_stats.get("count", 0)
-    
+
     if count == 0:
         st.info("💾 Cache is empty")
         return
-    
+
     # Show basic cache info
     keys = cache_stats.get("keys", [])
     keys_display = ", ".join(keys[:3])  # Show first 3 function names
     if len(keys) > 3:
         keys_display += f" and {len(keys) - 3} more"
-    
+
     earliest = cache_stats.get("earliest_expiry")
     latest = cache_stats.get("latest_expiry")
-    
+
     info_text = f"💾 **Cache Status:** {count} active entries"
-    
+
     if keys:
         info_text += f"\n📊 **Cached functions:** {keys_display}"
-    
+
     if earliest and latest:
         try:
             now = time.time()
             earliest_mins = int((earliest - now) / 60)
             latest_mins = int((latest - now) / 60)
-            
+
             if earliest_mins <= 0:
                 info_text += f"\n⏰ **Expiry:** Some entries expiring soon"
             else:
                 info_text += f"\n⏰ **Expiry:** {earliest_mins}-{latest_mins} minutes remaining"
         except (OSError, ValueError):
             pass
-    
+
+    # Add telemetry if available
+    if "total_hits" in cache_stats:
+        total_hits = cache_stats["total_hits"]
+        total_misses = cache_stats["total_misses"]
+        hit_rate = cache_stats["hit_rate"]
+        top_3 = cache_stats.get("top_3_by_hits", [])
+
+        info_text += f"\n📈 **Cache Performance:** {total_hits} hits, {total_misses} misses ({hit_rate:.1%} hit rate)"
+
+        if top_3:
+            top_display = ", ".join([f"{name} ({hits})" for name, hits in top_3])
+            info_text += f"\n🏆 **Top functions:** {top_display}"
+
     st.info(info_text)
 
 
 def render_loading_placeholder(message: str = "Loading...") -> None:
     """
-    Render a consistent loading placeholder.
-    
+    Render a consistent loading spinner (visual side-effect only).
+
     Args:
         message: Loading message to display
     """
     with st.spinner(message):
-        # Create a placeholder that can be replaced when loading completes
-        placeholder = st.empty()
-        return placeholder
+        # Spinner context only; no value returned
+        pass
 
 
 def render_section_error(section_name: str, error: Exception, show_details: bool = False) -> None:

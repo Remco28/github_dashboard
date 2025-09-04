@@ -9,7 +9,8 @@ This document sketches the current architecture shape so developers understand h
 - GitHub Client (`services/github_client.py`) – Thin REST client for GitHub API (pagination, timeouts, basic errors).
   - Error classification via `services/errors.py` (Phase 6): maps 401/403‑rate‑limit/404/other to typed exceptions for consistent UI handling.
 - Cache (`services/cache.py`) – Simple in‑memory TTL cache to limit API calls and keep UI responsive.
-- Analytics (`services/analytics.py`) – Chart‑ready aggregations (commits by day, repo stats, trends). Planned Phase 3.
+  - Phase 9: Adds cache telemetry (hits/misses per function, hit rate) via `cache_metrics()` and supports optional per‑call `cache_bust` in cached wrappers to bypass TTL for section‑level refreshes.
+- Analytics (`services/analytics.py`) – Chart‑ready aggregations (commits by day, repo stats, trends). Implemented in Phase 3.
  - NEXT_STEPS Parser (`services/next_steps.py`) – Fetches and parses `NEXT_STEPS.md` into actionable tasks. Implemented in Phase 4; rendered via `ui/checklists.py` with aggregate and repo detail views.
 - Gamification (`services/gamification.py`) – Computes streaks, badges, and “stale repo” nudges. Implemented in Phase 5 with:
   - compute_activity_dates → set of active days from commit timestamps
@@ -36,6 +37,7 @@ This document sketches the current architecture shape so developers understand h
   - analytics (charts)
   - next_steps (parsing)
   - gamification (streaks/badges/nudges)
+  - cache metrics (telemetry)
   - errors (classification)
         |
         v
@@ -60,13 +62,14 @@ select repo → fetch `NEXT_STEPS.md` via GitHub Contents API → parse checklis
 ### Refresh & Rate Limits
 ```
 user clicks Refresh → bypass cache → re‑fetch → update UI
+user clicks section Refresh (Charts/NEXT_STEPS/Motivation) → bypass cache for that section only → update that section
 ```
 - On 401/403, show friendly errors and suggest checking token/scope; never expose secrets.
 
 ## Key Abstractions
 
 - RepoSummary – minimal repo view for tables/cards: name, visibility, stars, forks, open issues, last push, language, etc.
-- TaskItem (planned) – parsed from `NEXT_STEPS.md` checkboxes with section context and status.
+- TaskItem – parsed from `NEXT_STEPS.md` checkboxes with section context and status (implemented in Phase 4).
 - Streak/Badge – derived metrics used by gamification.
 
 ## Authentication & Authorization
@@ -95,8 +98,10 @@ user clicks Refresh → bypass cache → re‑fetch → update UI
 - Execution: `streamlit run app.py` launches the UI locally.
 - Concurrency: Streamlit reruns scripts on interaction; use memoization/TTL cache for stability and speed.
 - Performance: Keep API calls bounded; aggregate in memory using Pandas only where needed. Gamification reuses the same commit window and repo cap as charts.
+- Per‑Section Refresh (Phase 9): Visualizations, NEXT_STEPS, and Motivation sections expose a small Refresh button. These trigger a one‑off cache bypass using a timestamp `cache_bust` passed to cached wrappers; other sections remain unaffected.
 - Resilience (Phase 6): Auth/Rate‑limit aware errors; unified notifications; cache controls (bypass/clear); consistent last‑updated indicators.
 - Observability: minimal INFO logs (no secrets); show lightweight “last updated” indicators in UI.
+  - Phase 9 Cache Telemetry: Sidebar cache panel displays active entries, cached function names, and cache performance (hits/misses, hit rate, top functions) sourced from `services/cache.cache_metrics()`.
 
 ## Development Guidelines
 
@@ -113,5 +118,5 @@ user clicks Refresh → bypass cache → re‑fetch → update UI
 ## Related Docs
 
 - Roadmap: `docs/ROADMAP.md`
-- Current task spec: `comms/tasks/2025-09-03-foundations-and-data-fetch-mvp.md`
+- Specs: Current specs live in `comms/tasks/`; completed specs are archived in `comms/tasks/archive/`
 - Logging protocol: `comms/log.md`

@@ -10,6 +10,8 @@ A comprehensive Streamlit dashboard that provides insights into your GitHub repo
 - **Gamification**: Activity streaks, achievement badges, and progress tracking to stay motivated
 - **Nudges & Insights**: Detect stale repositories and get gentle reminders to keep projects active
 - **Smart Caching**: Intelligent caching system to respect GitHub API rate limits
+- **Per‑Section Refresh**: Refresh Visualizations, NEXT_STEPS, or Motivation independently without clearing the whole cache
+- **Cache Telemetry**: Sidebar shows cache hits, misses, hit rate, and top cached functions (no PII)
 - **Settings Help**: Built-in guidance for setup and troubleshooting
 
 ## 🚀 Quickstart
@@ -126,7 +128,9 @@ The application will:
 
 The dashboard includes intelligent caching to optimize performance:
 - **Cache Stats**: View current cache status in the sidebar
+- **Cache Telemetry**: See hits, misses, hit rate, and top cached functions for observability
 - **Refresh Button**: Force refresh of repository list
+- **Section Refresh**: Refresh just a section (Charts, NEXT_STEPS, Motivation) without clearing the cache
 - **Bypass Cache**: Temporarily disable all caching (use sparingly)
 - **Clear Cache**: Remove all cached data and start fresh
 

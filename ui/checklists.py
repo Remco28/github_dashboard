@@ -14,7 +14,7 @@ def render_aggregate(tasks_by_repo: Dict[str, List[TaskItem]]) -> None:
         st.info("📝 No NEXT_STEPS.md files found in repositories.")
         st.markdown(
             "💡 Add NEXT_STEPS.md files to your repositories to track project tasks and milestones. "
-            "[Learn more about the template](https://github.com/anthropics/claude-code/blob/main/NEXT_STEPS.md)"
+            "See the template in this repo: [NEXT_STEPS.template.md](NEXT_STEPS.template.md)."
         )
         return
     
@@ -93,7 +93,7 @@ def render_repo_next_steps(doc: NextStepsDoc) -> None:
         st.warning(f"No NEXT_STEPS.md found for {doc.repo_full_name}")
         st.info(
             "💡 Add a NEXT_STEPS.md file to this repository to track tasks and milestones. "
-            "[View template](https://github.com/anthropics/claude-code/blob/main/NEXT_STEPS.md)"
+            "Use the template in this repo: [NEXT_STEPS.template.md](NEXT_STEPS.template.md)."
         )
         return
     

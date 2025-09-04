@@ -55,3 +55,10 @@
 [2025-09-04 10:30] [Developer]: IMPL DONE: Completed dark mode removal - removed theme toggle functions, CSS, plotly template switching, updated docs, removed darkmode.png asset, verified with grep searches. App now uses default light theme only.
 [2025-09-04 10:35] [Architect]: REVIEW PASS: Dark mode removal meets spec; no theme code remains; charts use defaults; asset removed.
 [2025-09-04 10:36] [Architect]: DOCS UPDATED: NEXT_STEPS updated with extended time window, section renames, and Nudges tasks; templates cleaned.
+[2025-09-04 14:15] [Architect]: SPEC READY: Phase 9 Per‑Section Refresh & Cache Telemetry at comms/tasks/2025-09-04-per-section-refresh-and-cache-telemetry.md.
+[2025-09-04 14:25] [Architect]: REVIEW PASS: Phase 9 meets spec; telemetry and per-section refresh verified.
+[2025-09-04 14:25] [Architect]: ARCHIVED: Moved Phase 9 spec to comms/tasks/archive/2025-09-04-per-section-refresh-and-cache-telemetry.md.
+[2025-09-04 14:25] [Architect]: DOCS UPDATED: ARCHITECTURE and ROADMAP reflect Phase 9 changes.
+[2025-09-04 15:48] [Architect]: DOCS UPDATED: README features and cache controls include per-section refresh & telemetry; ARCHITECTURE 'planned' entries corrected; ROADMAP Phase 7 note added; NEXT_STEPS template links point to repo file.
+[2025-09-04 15:00] [Developer]: IMPL IN_PROGRESS: Implementing Phase 9 Per-Section Refresh & Cache Telemetry with cache-bust support and telemetry
+[2025-09-04 16:00] [Developer]: IMPL DONE: Completed Phase 9 Per-Section Refresh & Cache Telemetry - added cache telemetry, per-section refresh buttons, cache-bust parameters, and updated UI to display metrics

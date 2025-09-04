@@ -60,7 +60,7 @@ This roadmap breaks delivery into clear, reviewable stages aligned to PROJECT.md
 ## Phase 7 – Polish & Docs (0.5 day)
 - Status: Completed
 - Goals: Usability polish, docs, and configuration.
-- Scope: Theming toggle, README usage, `.env.example`, configuration help.
+- Scope: Theming toggle (later removed via Phase 2025-09-04 Remove Dark Mode), README usage, `.env.example`, configuration help.
 - Deliverables: Updated README, screenshots/gifs, `.env.example`, settings help panel.
 - Acceptance: New user can set up and see charts within 10 minutes.
 
@@ -84,6 +84,14 @@ This roadmap breaks delivery into clear, reviewable stages aligned to PROJECT.md
 2) Actionable Insights (end Phase 4): NEXT_STEPS checklists and aggregates.
 3) Motivation Layer (end Phase 5): badges, streaks, stale nudges.
 4) Shareable (end Phase 8): deployed or easy local run with docs.
+5) UX Control & Observability (end Phase 9): per‑section refresh and cache telemetry shipped.
+
+## Phase 9 – Per‑Section Refresh & Cache Telemetry (0.5 day)
+- Status: Completed
+- Goals: Improve responsiveness and observability.
+- Scope: Section‑level refresh buttons (Visualizations, NEXT_STEPS, Motivation), cache‑bust support in cached wrappers, cache telemetry surfaced in sidebar.
+- Deliverables: Updated `services/cache.py` with metrics and `cache_bust`; `app.py` buttons and wiring; `ui/notifications.py` cache panel enhancements; analytics passthrough of `cache_bust`.
+- Acceptance: Section refresh bypasses TTL without clearing entire cache; sidebar shows hits/misses and hit rate; no regressions in rate‑limit handling.
 
 ## Next Actions (Spec Handoff)
 - Author Phase 0–1 spec in `comms/tasks/` with file/function names and acceptance tests.
