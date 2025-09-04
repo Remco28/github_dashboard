@@ -65,6 +65,7 @@ This roadmap breaks delivery into clear, reviewable stages aligned to PROJECT.md
 - Acceptance: New user can set up and see charts within 10 minutes.
 
 ## Phase 8 – Optional Deployment (0.5 day)
+- Status: Completed
 - Goals: Simple hosting option.
 - Scope: Streamlit Community Cloud instructions; alt: Dockerfile.
 - Deliverables: Deploy guide; minimal Dockerfile (optional).

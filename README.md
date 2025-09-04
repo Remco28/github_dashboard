@@ -168,6 +168,11 @@ For detailed information about the project's architecture and future plans:
 - [**Architecture Documentation**](docs/ARCHITECTURE.md) - System design and component interactions
 - [**Development Roadmap**](docs/ROADMAP.md) - Feature timeline and implementation phases
 
+## 🚢 Deploy
+
+See the Deployment Guide for Streamlit Community Cloud and Docker instructions:
+- [**Deployment Guide**](docs/DEPLOYMENT.md)
+
 ## 🤝 Contributing
 
 This project uses a structured development workflow with separate Architect and Developer roles. See the `comms/` directory for task specifications and development logs.
