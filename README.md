@@ -10,7 +10,6 @@ A comprehensive Streamlit dashboard that provides insights into your GitHub repo
 - **Gamification**: Activity streaks, achievement badges, and progress tracking to stay motivated
 - **Nudges & Insights**: Detect stale repositories and get gentle reminders to keep projects active
 - **Smart Caching**: Intelligent caching system to respect GitHub API rate limits
-- **Dark/Light Themes**: Toggle between Auto, Light, and Dark appearance modes
 - **Settings Help**: Built-in guidance for setup and troubleshooting
 
 ## 🚀 Quickstart

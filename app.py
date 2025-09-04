@@ -9,7 +9,7 @@ from services.cache import cached_fetch_next_steps
 from services.next_steps import parse_next_steps
 from services.gamification import compute_activity_dates, assign_badges, detect_stale_repos
 from services.errors import RateLimitError
-from ui.components import render_stat_cards, render_repo_table, render_theme_toggle, apply_theme, render_settings_help
+from ui.components import render_stat_cards, render_repo_table, render_settings_help
 from ui.charts import render_language_pie, render_commits_bar, render_trend_line, render_heatmap
 from ui.checklists import render_aggregate, render_repo_next_steps, render_missing_next_steps_guidance
 from ui.gamification import render_badges, render_streaks, render_stale_nudges
@@ -111,7 +111,7 @@ def main():
         
         max_repos = st.sidebar.selectbox(
             "Max Repositories for Charts",
-            options=[5, 10, 20],
+            options=[5, 10, 20, 50, 100],
             index=1,
             help="Number of repositories to analyze for commit-based charts"
         )
@@ -124,11 +124,6 @@ def main():
             help="Repositories without pushes for this many days are considered stale"
         )
         
-        # Appearance controls
-        st.sidebar.markdown("---")
-        st.sidebar.header("🎨 Appearance")
-        selected_theme = render_theme_toggle()
-        apply_theme(selected_theme)
         
         # Cache controls (continued)
         st.sidebar.markdown("---")
@@ -246,7 +241,7 @@ def main():
         
         # NEXT_STEPS Section
         st.markdown("---")
-        st.header("📝 NEXT_STEPS Integration")
+        st.header("📝 Project Tasks (NEXT_STEPS)")
         
         if filtered_repos:
             with st.spinner("Loading NEXT_STEPS data..."):

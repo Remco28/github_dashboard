@@ -102,6 +102,7 @@ user clicks Refresh → bypass cache → re‑fetch → update UI
 
 ### For Developers
 - Keep services pure and UI‑agnostic; Streamlit code belongs in `app.py` and `ui/*`.
+- Use the default Streamlit theme (light-only) for simplicity and consistency.
 - Reuse small helpers (e.g., `parse_next_link`) and add type hints.
 - Handle empty/edge cases (no repos, missing files) with clear UI states.
 

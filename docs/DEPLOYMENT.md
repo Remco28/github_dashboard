@@ -51,7 +51,6 @@ GITHUB_USERNAME = "your_github_username_here"
 1. **Visit your app URL** (provided after deployment)
 2. **Check that repositories load** correctly
 3. **Test filtering and visualization** features
-4. **Verify theme toggle** works properly
 
 ### Streamlit Cloud Configuration Notes
 

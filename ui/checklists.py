@@ -174,9 +174,9 @@ def render_missing_next_steps_guidance(repo_count: int) -> None:
         - [ ] Add unit tests for user service
 
         ## Future Enhancements
-        - [ ] Implement dark mode theme
         - [ ] Add email notification system
         - [ ] Optimize database queries
+        - [ ] Support extended activity window (e.g., 730 days)
 
         ## Documentation
         - [x] Write API documentation

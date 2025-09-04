@@ -50,3 +50,8 @@
 [2025-09-04 09:15] [Developer]: IMPL DONE: Completed Phase 7 Polish & Docs - added theme toggle (Auto/Light/Dark), settings help panel with setup guidance, comprehensive README with all sections, placeholder screenshots, and enhanced .env.example comments
 [2025-09-04 09:41] [Developer]: IMPL IN_PROGRESS: Implementing Phase 8 Optional Deployment with Streamlit Cloud guide, Docker configuration, and deployment documentation
 [2025-09-04 09:45] [Developer]: IMPL DONE: Completed Phase 8 Optional Deployment - enhanced DEPLOYMENT.md with comprehensive Streamlit Cloud and Docker guides, verified minimal Dockerfile, and confirmed README Deploy section links properly
+[2025-09-04 10:05] [Architect]: SPEC READY: Remove Dark Mode and theme toggle at comms/tasks/2025-09-04-remove-dark-mode.md.
+[2025-09-04 10:15] [Developer]: IMPL IN_PROGRESS: Implementing dark mode removal - will remove theme toggle, custom CSS, and simplify to light-only theme
+[2025-09-04 10:30] [Developer]: IMPL DONE: Completed dark mode removal - removed theme toggle functions, CSS, plotly template switching, updated docs, removed darkmode.png asset, verified with grep searches. App now uses default light theme only.
+[2025-09-04 10:35] [Architect]: REVIEW PASS: Dark mode removal meets spec; no theme code remains; charts use defaults; asset removed.
+[2025-09-04 10:36] [Architect]: DOCS UPDATED: NEXT_STEPS updated with extended time window, section renames, and Nudges tasks; templates cleaned.
