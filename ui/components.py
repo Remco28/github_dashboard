@@ -141,62 +141,90 @@ def render_theme_toggle() -> str:
 
 def apply_theme(theme: str) -> None:
     """Apply theme CSS based on selected theme."""
+    # Default chart template
+    st.session_state["plotly_template"] = "plotly"
+
     if theme == "Dark":
-        # Dark theme CSS
-        st.markdown("""
-        <style>
-        .stApp {
-            background-color: #0e1117;
-            color: #fafafa;
-        }
-        .stSidebar {
-            background-color: #262730;
-        }
-        .stSelectbox > div > div {
-            background-color: #262730;
-            color: #fafafa;
-        }
-        .stTextInput > div > div {
-            background-color: #262730;
-            color: #fafafa;
-        }
-        .stMultiSelect > div > div {
-            background-color: #262730;
-            color: #fafafa;
-        }
-        .stMetric {
-            background-color: #1e1e1e;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            border: 1px solid #333;
-        }
-        .stDataFrame {
-            background-color: #1e1e1e;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+        # Prefer high-contrast, accessible colors
+        st.session_state["plotly_template"] = "plotly_dark"
+        st.markdown(
+            """
+            <style>
+            :root {
+              --bg: #0b0f14;          /* page background */
+              --surface: #111827;     /* cards/sections */
+              --muted: #1f2937;       /* inputs/sidebars */
+              --text: #e5e7eb;        /* primary text */
+              --text-dim: #cbd5e1;    /* secondary text */
+              --border: #2d3748;      /* subtle borders */
+              --accent: #60a5fa;      /* links/buttons */
+              --accent-strong: #93c5fd;
+              --ok: #10b981;          /* success */
+              --warn: #f59e0b;        /* warning */
+              --info: #3b82f6;        /* info */
+            }
+
+            .stApp { background-color: var(--bg); color: var(--text); }
+            .stSidebar { background-color: var(--muted); }
+            /* Text legibility */
+            h1, h2, h3, h4, h5, h6 { color: var(--text); }
+            p, li, label, .markdown-text-container { color: var(--text-dim); line-height: 1.5; }
+            a { color: var(--accent-strong); text-decoration: none; }
+            a:hover { text-decoration: underline; }
+
+            /* Inputs */
+            input, textarea, select, .stSelectbox > div > div, .stTextInput > div > div, .stMultiSelect > div > div {
+              background-color: var(--muted) !important;
+              color: var(--text) !important;
+              border: 1px solid var(--border) !important;
+            }
+            ::placeholder { color: #94a3b8 !important; }
+
+            /* Cards / metrics */
+            .stMetric { background-color: var(--surface); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--border); }
+
+            /* Dataframes */
+            .stDataFrame, .stTable { background-color: var(--surface); border: 1px solid var(--border); }
+
+            /* Alerts */
+            .stAlert { border: 1px solid var(--border); }
+            .stAlert, .stAlert > div { background-color: var(--surface) !important; color: var(--text) !important; }
+
+            /* Code blocks */
+            code, pre { background-color: #0f172a !important; color: #e2e8f0 !important; }
+
+            /* Tabs */
+            [data-baseweb="tab-highlight"] { background: var(--surface); }
+            [data-baseweb="tab"] { color: var(--text-dim); }
+            [data-baseweb="tab"][aria-selected="true"] { color: var(--text); }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
     elif theme == "Light":
-        # Light theme CSS
-        st.markdown("""
-        <style>
-        .stApp {
-            background-color: #ffffff;
-            color: #262730;
-        }
-        .stSidebar {
-            background-color: #f0f2f6;
-        }
-        .stMetric {
-            background-color: #f8f9fa;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            border: 1px solid #e9ecef;
-        }
-        .stDataFrame {
-            background-color: #ffffff;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+        # Reset to a clean, readable light theme
+        st.session_state["plotly_template"] = "plotly"
+        st.markdown(
+            """
+            <style>
+            :root {
+              --bg: #ffffff;
+              --surface: #ffffff;
+              --muted: #f7f8fb;
+              --text: #111827;
+              --text-dim: #374151;
+              --border: #e5e7eb;
+              --accent: #2563eb;
+            }
+            .stApp { background-color: var(--bg); color: var(--text); }
+            .stSidebar { background-color: var(--muted); }
+            .stMetric { background-color: var(--surface); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--border); }
+            .stDataFrame, .stTable { background-color: var(--surface); border: 1px solid var(--border); }
+            a { color: var(--accent); }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
     # For "Auto" theme, no custom CSS is applied (Streamlit default)
 
 

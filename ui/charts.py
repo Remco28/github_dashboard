@@ -25,10 +25,12 @@ def render_language_pie(lang_map: Dict[str, int]) -> None:
     )
     
     fig.update_traces(textposition='inside', textinfo='percent+label')
+    template = st.session_state.get("plotly_template", "plotly")
     fig.update_layout(
         height=400,
         showlegend=True,
-        legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
+        legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02),
+        template=template
     )
     
     st.plotly_chart(fig, use_container_width=True)
@@ -61,10 +63,12 @@ def render_commits_bar(data: List[Tuple[str, int]]) -> None:
         color_continuous_scale='Blues'
     )
     
+    template = st.session_state.get("plotly_template", "plotly")
     fig.update_layout(
         height=max(300, len(filtered_data) * 40),
         yaxis={'categoryorder': 'total ascending'},
-        showlegend=False
+        showlegend=False,
+        template=template
     )
     
     fig.update_traces(texttemplate='%{x}', textposition='outside')
@@ -93,11 +97,13 @@ def render_trend_line(points: List[Tuple[str, int]]) -> None:
         line_shape='spline'
     )
     
+    template = st.session_state.get("plotly_template", "plotly")
     fig.update_layout(
         height=400,
         xaxis_title="Date",
         yaxis_title="Number of Commits",
-        hovermode='x unified'
+        hovermode='x unified',
+        template=template
     )
     
     fig.update_traces(
@@ -156,10 +162,12 @@ def render_heatmap(day_counts: Dict[str, int]) -> None:
             color_continuous_scale='Blues'
         )
         
+        template = st.session_state.get("plotly_template", "plotly")
         fig.update_layout(
             height=400,
             xaxis_title="Day of Week",
-            yaxis_title="Average Commits"
+            yaxis_title="Average Commits",
+            template=template
         )
     else:
         # For shorter periods, show daily activity
@@ -173,11 +181,13 @@ def render_heatmap(day_counts: Dict[str, int]) -> None:
             color_continuous_scale='Blues'
         )
         
+        template = st.session_state.get("plotly_template", "plotly")
         fig.update_layout(
             height=300,
             yaxis=dict(visible=False),
             xaxis_title="Date",
-            showlegend=False
+            showlegend=False,
+            template=template
         )
     
     st.plotly_chart(fig, use_container_width=True)
