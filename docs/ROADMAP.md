@@ -35,7 +35,7 @@ This roadmap breaks delivery into clear, reviewable stages aligned to PROJECT.md
 - Risks: Commit aggregation volume. Mitigation: bounded time window + caching.
 
 ## Phase 4 – NEXT_STEPS Integration (1 day)
-- Status: In Progress
+- Status: Completed
 - Goals: Fetch and parse `NEXT_STEPS.md` per repo; show actionable tasks.
 - Scope: File detection, Markdown parse (sections, checkboxes), aggregate counts.
 - Deliverables: `services/next_steps.py` parser; UI checklist component; repo detail view; GitHub contents fetch and caching wrappers; aggregate totals in main view.
@@ -43,6 +43,7 @@ This roadmap breaks delivery into clear, reviewable stages aligned to PROJECT.md
 - Risks: Format drift. Mitigation: tolerant parser + template link.
 
 ## Phase 5 – Gamification & Nudges (0.5–1 day)
+- Status: Completed
 - Goals: Motivational badges, streaks, gentle reminders.
 - Scope: Current/longest commit streak, stale repo list, badge logic.
 - Deliverables: `services/gamification.py`; badges in header; nudges block.

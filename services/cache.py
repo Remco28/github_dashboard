@@ -60,3 +60,27 @@ def cached_list_repo_commits(owner: str, repo: str, token: str, since: str, unti
     """Cached version of list_repo_commits."""
     from services.github_client import list_repo_commits
     return list_repo_commits(owner, repo, token, since, until)
+
+
+# Cached wrapper for get_file_contents with 5-minute TTL
+@ttl_cache(300)  # 5 minutes
+def cached_get_file_contents(owner: str, repo: str, path: str, token: str) -> dict | None:
+    """Cached version of get_file_contents."""
+    from services.github_client import get_file_contents
+    return get_file_contents(owner, repo, path, token)
+
+
+# Cached wrapper for fetch_next_steps with 5-minute TTL
+@ttl_cache(300)  # 5 minutes
+def cached_fetch_next_steps(owner: str, repo: str, token: str) -> str | None:
+    """Cached version of fetch_next_steps."""
+    from services.next_steps import fetch_next_steps
+    return fetch_next_steps(owner, repo, token)
+
+
+# Cached wrapper for compute_streaks with 5-minute TTL
+@ttl_cache(300)  # 5 minutes
+def cached_compute_streaks(activity_dates: tuple[str, ...], until: str):
+    """Cached version of compute_streaks. Requires hashable tuple of dates."""
+    from services.gamification import compute_streaks
+    return compute_streaks(set(activity_dates), until)

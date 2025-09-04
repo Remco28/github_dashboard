@@ -2,11 +2,16 @@ import streamlit as st
 import time
 from datetime import datetime, timedelta
 from config.settings import get_settings
-from services.cache import cached_list_user_repos
+from services.cache import cached_list_user_repos, cached_list_repo_commits, cached_compute_streaks
 from services.github_client import to_repo_summary
 from services.analytics import filter_repos, languages_set, language_distribution, commits_per_repo, commits_over_time, heatmap_counts
+from services.cache import cached_fetch_next_steps
+from services.next_steps import parse_next_steps
+from services.gamification import compute_activity_dates, assign_badges, detect_stale_repos
 from ui.components import render_stat_cards, render_repo_table
 from ui.charts import render_language_pie, render_commits_bar, render_trend_line, render_heatmap
+from ui.checklists import render_aggregate, render_repo_next_steps, render_missing_next_steps_guidance
+from ui.gamification import render_badges, render_streaks, render_stale_nudges
 
 st.set_page_config(
     page_title="GitHub Project Tracker Dashboard",
@@ -83,6 +88,14 @@ def main():
             options=[5, 10, 20],
             index=1,
             help="Number of repositories to analyze for commit-based charts"
+        )
+        
+        stale_threshold = st.sidebar.slider(
+            "Stale Threshold (days)",
+            min_value=7,
+            max_value=180,
+            value=30,
+            help="Repositories without pushes for this many days are considered stale"
         )
         
         # Clear filters button
@@ -176,6 +189,144 @@ def main():
         
         else:
             st.info("📊 No repositories available for visualization. Try adjusting your filters.")
+        
+        # NEXT_STEPS Section
+        st.markdown("---")
+        st.header("📝 NEXT_STEPS Integration")
+        
+        if filtered_repos:
+            with st.spinner("Loading NEXT_STEPS data..."):
+                # Limit to first 20 repos to keep API calls bounded
+                repos_to_process = filtered_repos[:20]
+                
+                # Fetch NEXT_STEPS.md files
+                next_steps_docs = {}
+                missing_files_count = 0
+                
+                for repo in repos_to_process:
+                    owner, name = repo.full_name.split('/', 1)
+                    
+                    try:
+                        md_content = cached_fetch_next_steps(owner, name, settings.github_token)
+                        if md_content:
+                            doc = parse_next_steps(md_content, repo.full_name)
+                            next_steps_docs[repo.full_name] = doc
+                        else:
+                            missing_files_count += 1
+                    except Exception as e:
+                        st.warning(f"Error fetching NEXT_STEPS.md for {repo.full_name}: {str(e)[:100]}...")
+                        missing_files_count += 1
+                
+                # Extract tasks by repo for aggregate view
+                tasks_by_repo = {
+                    repo_name: doc.tasks 
+                    for repo_name, doc in next_steps_docs.items()
+                }
+                
+                # Render aggregate view
+                render_aggregate(tasks_by_repo)
+                
+                # Repository selector for detailed view
+                if next_steps_docs:
+                    st.markdown("---")
+                    st.subheader("📋 Repository Details")
+                    
+                    selected_repo = st.selectbox(
+                        "Select repository to view tasks:",
+                        options=list(next_steps_docs.keys()),
+                        key="next_steps_repo_selector",
+                        help="Choose a repository to see its NEXT_STEPS.md tasks"
+                    )
+                    
+                    if selected_repo:
+                        render_repo_next_steps(next_steps_docs[selected_repo])
+                
+                # Show guidance for missing files
+                if missing_files_count > 0:
+                    st.markdown("---")
+                    render_missing_next_steps_guidance(missing_files_count)
+                
+                # Processing summary
+                processed_count = len(repos_to_process)
+                total_filtered = len(filtered_repos)
+                
+                if processed_count < total_filtered:
+                    st.info(
+                        f"📊 Processed {processed_count} of {total_filtered} repositories. "
+                        f"To improve performance, only the first 20 repositories are analyzed for NEXT_STEPS."
+                    )
+        
+        else:
+            st.info("📝 No repositories available for NEXT_STEPS analysis. Try adjusting your filters.")
+        
+        # Motivation Section (Streaks & Badges)
+        st.markdown("---")
+        st.header("🏆 Motivation")
+        
+        if filtered_repos:
+            with st.spinner("Computing activity streaks and badges..."):
+                # Use same bounded repo set as visualizations
+                repos_to_analyze = filtered_repos[:max_repos]
+                
+                # Fetch commit data for streak computation
+                commits_by_repo = {}
+                for repo in repos_to_analyze:
+                    owner, name = repo.full_name.split('/', 1)
+                    
+                    try:
+                        commits = cached_list_repo_commits(owner, name, settings.github_token, since_iso, until_iso)
+                        commits_by_repo[repo.full_name] = commits
+                    except Exception as e:
+                        # Skip repos that fail to fetch
+                        commits_by_repo[repo.full_name] = []
+                
+                # Compute activity dates and streaks
+                activity_dates = compute_activity_dates(commits_by_repo)
+                
+                # Use cached streak computation with hashable tuple
+                streaks = cached_compute_streaks(tuple(sorted(activity_dates)), until_iso[:10])
+                
+                # Calculate total commits and assign badges
+                total_commits = sum(len(commits) for commits in commits_by_repo.values())
+                badges = assign_badges(streaks, total_commits)
+                
+                # Render streak stats
+                st.subheader("🔥 Activity Streaks")
+                render_streaks(streaks)
+                
+                # Render badges
+                st.subheader("🏅 Achievements")
+                render_badges(badges)
+                
+                # Show analysis summary
+                analyzed_count = len(repos_to_analyze)
+                total_filtered = len(filtered_repos)
+                
+                if analyzed_count < total_filtered:
+                    st.info(
+                        f"📊 Streak analysis based on {analyzed_count} of {total_filtered} repositories "
+                        f"(limited by 'Max Repositories for Charts' setting)."
+                    )
+                else:
+                    st.info(f"📊 Streak analysis based on all {analyzed_count} repositories.")
+        
+        else:
+            st.info("🏆 No repositories available for motivation analysis. Try adjusting your filters.")
+        
+        # Nudges Section (Stale Repositories)  
+        st.markdown("---")
+        st.header("🚨 Nudges")
+        
+        if filtered_repos:
+            with st.spinner("Detecting stale repositories..."):
+                # Detect stale repositories from all filtered repos
+                stale_repos = detect_stale_repos(filtered_repos, stale_threshold)
+                
+                # Render stale repository nudges
+                render_stale_nudges(stale_repos, limit=5)
+        
+        else:
+            st.info("🚨 No repositories available for nudge analysis. Try adjusting your filters.")
     
     except RuntimeError as e:
         st.error(f"Configuration Error: {e}")

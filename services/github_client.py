@@ -141,3 +141,36 @@ def list_repo_commits(owner: str, repo: str, token: str, since: str, until: str,
         params = None
     
     return commits
+
+
+def get_file_contents(owner: str, repo: str, path: str, token: str) -> dict | None:
+    """
+    Get file contents from a repository via the GitHub Contents API.
+    
+    Args:
+        owner: Repository owner
+        repo: Repository name  
+        path: Path to the file within the repository
+        token: GitHub token
+        
+    Returns:
+        Response JSON dict if file exists, None if 404 (file not found)
+    """
+    url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}"
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github+json"
+    }
+    
+    response = requests.get(url, headers=headers, timeout=10)
+    
+    if response.status_code == 404:
+        return None
+    
+    if response.status_code >= 400:
+        error_text = response.text[:200] if response.text else "No error details"
+        raise RuntimeError(
+            f"GitHub API error {response.status_code}: {error_text}"
+        )
+    
+    return response.json()
