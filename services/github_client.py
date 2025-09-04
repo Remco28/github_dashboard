@@ -1,8 +1,53 @@
 import requests
+import time
 from typing import Dict, List
 from models.github_types import RepoSummary
+from services.errors import classify_response, NotFoundError
 
 GITHUB_API = "https://api.github.com"
+
+
+def _request_with_retry(method: str, url: str, headers: dict, params: dict = None, max_retries: int = 2, backoff: float = 0.5) -> requests.Response:
+    """
+    Make HTTP request with bounded retries for transient failures.
+    
+    Args:
+        method: HTTP method (GET, POST, etc.)
+        url: Request URL
+        headers: Request headers
+        params: Query parameters
+        max_retries: Maximum number of retry attempts
+        backoff: Backoff delay in seconds between retries
+        
+    Returns:
+        Response object
+        
+    Raises:
+        Exception: For non-transient errors or after max retries
+    """
+    last_exception = None
+    
+    for attempt in range(max_retries + 1):
+        try:
+            response = requests.request(method, url, headers=headers, params=params, timeout=10)
+            # Classify response for API errors
+            classify_response(response)
+            return response
+        
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+            last_exception = e
+            if attempt < max_retries:
+                time.sleep(backoff)
+                continue
+            else:
+                raise e
+        except Exception as e:
+            # For API errors (AuthError, RateLimitError, etc.), don't retry
+            raise e
+    
+    # This shouldn't be reached, but just in case
+    if last_exception:
+        raise last_exception
 
 
 def parse_next_link(link_header: str | None) -> str | None:
@@ -31,13 +76,7 @@ def list_user_repos(username: str, token: str, include_private: bool = True) -> 
     
     repos = []
     while url:
-        response = requests.get(url, headers=headers, timeout=10)
-        
-        if response.status_code >= 400:
-            error_text = response.text[:200] if response.text else "No error details"
-            raise RuntimeError(
-                f"GitHub API error {response.status_code}: {error_text}"
-            )
+        response = _request_with_retry("GET", url, headers)
         
         page_repos = response.json()
         repos.extend(page_repos)
@@ -74,18 +113,12 @@ def get_repo_languages(owner: str, repo: str, token: str) -> Dict[str, int]:
         "Accept": "application/vnd.github+json"
     }
     
-    response = requests.get(url, headers=headers, timeout=10)
-    
-    if response.status_code == 404:
+    try:
+        response = _request_with_retry("GET", url, headers)
+        return response.json()
+    except NotFoundError:
+        # Repository not found or no language data - return empty dict
         return {}
-    
-    if response.status_code >= 400:
-        error_text = response.text[:200] if response.text else "No error details"
-        raise RuntimeError(
-            f"GitHub API error {response.status_code}: {error_text}"
-        )
-    
-    return response.json()
 
 
 def list_repo_commits(owner: str, repo: str, token: str, since: str, until: str, max_pages: int = 2) -> List[Dict]:
@@ -118,27 +151,22 @@ def list_repo_commits(owner: str, repo: str, token: str, since: str, until: str,
     pages_fetched = 0
     
     while url and pages_fetched < max_pages:
-        response = requests.get(url, headers=headers, params=params, timeout=10)
-        
-        if response.status_code == 404:
+        try:
+            response = _request_with_retry("GET", url, headers, params)
+            
+            page_commits = response.json()
+            commits.extend(page_commits)
+            
+            pages_fetched += 1
+            
+            # Get next page URL from Link header
+            url = parse_next_link(response.headers.get("Link"))
+            # Clear params for subsequent requests since URL contains them
+            params = None
+            
+        except NotFoundError:
             # Repository might be empty or not accessible
             break
-            
-        if response.status_code >= 400:
-            error_text = response.text[:200] if response.text else "No error details"
-            raise RuntimeError(
-                f"GitHub API error {response.status_code}: {error_text}"
-            )
-        
-        page_commits = response.json()
-        commits.extend(page_commits)
-        
-        pages_fetched += 1
-        
-        # Get next page URL from Link header
-        url = parse_next_link(response.headers.get("Link"))
-        # Clear params for subsequent requests since URL contains them
-        params = None
     
     return commits
 
@@ -162,15 +190,9 @@ def get_file_contents(owner: str, repo: str, path: str, token: str) -> dict | No
         "Accept": "application/vnd.github+json"
     }
     
-    response = requests.get(url, headers=headers, timeout=10)
-    
-    if response.status_code == 404:
+    try:
+        response = _request_with_retry("GET", url, headers)
+        return response.json()
+    except NotFoundError:
+        # File not found - return None
         return None
-    
-    if response.status_code >= 400:
-        error_text = response.text[:200] if response.text else "No error details"
-        raise RuntimeError(
-            f"GitHub API error {response.status_code}: {error_text}"
-        )
-    
-    return response.json()

@@ -2,16 +2,18 @@ import streamlit as st
 import time
 from datetime import datetime, timedelta
 from config.settings import get_settings
-from services.cache import cached_list_user_repos, cached_list_repo_commits, cached_compute_streaks
+from services.cache import cached_list_user_repos, cached_list_repo_commits, cached_compute_streaks, clear_cache, cache_stats
 from services.github_client import to_repo_summary
 from services.analytics import filter_repos, languages_set, language_distribution, commits_per_repo, commits_over_time, heatmap_counts
 from services.cache import cached_fetch_next_steps
 from services.next_steps import parse_next_steps
 from services.gamification import compute_activity_dates, assign_badges, detect_stale_repos
+from services.errors import RateLimitError
 from ui.components import render_stat_cards, render_repo_table
 from ui.charts import render_language_pie, render_commits_bar, render_trend_line, render_heatmap
 from ui.checklists import render_aggregate, render_repo_next_steps, render_missing_next_steps_guidance
 from ui.gamification import render_badges, render_streaks, render_stale_nudges
+from ui.notifications import render_error, render_last_updated, render_cache_info, render_section_error
 
 st.set_page_config(
     page_title="GitHub Project Tracker Dashboard",
@@ -33,17 +35,41 @@ def main():
         # Handle refresh functionality
         refresh_pressed = st.sidebar.button("🔄 Refresh", help="Refresh repository data")
         
-        # Use cache_bust parameter to bypass cache when refresh is pressed
-        cache_bust = str(time.time()) if refresh_pressed else None
+        # Cache controls (need to be defined early for cache_bust calculation)
+        bypass_cache = st.sidebar.checkbox(
+            "Bypass Cache",
+            help="Force fresh data fetches, ignoring cached data"
+        )
         
-        # Show loading state
-        with st.spinner("Loading repositories..."):
-            # Fetch repositories
-            raw_repos = cached_list_user_repos(
-                settings.github_username, 
-                settings.github_token, 
-                cache_bust
-            )
+        # Use cache_bust parameter to bypass cache when refresh is pressed or bypass is checked
+        cache_bust = str(time.time()) if (refresh_pressed or bypass_cache) else None
+        
+        # Repository fetch with error handling
+        raw_repos = []
+        repo_fetch_time = None
+        
+        try:
+            # Show loading state
+            with st.spinner("Loading repositories..."):
+                # Fetch repositories
+                raw_repos = cached_list_user_repos(
+                    settings.github_username, 
+                    settings.github_token, 
+                    cache_bust
+                )
+                repo_fetch_time = time.time()
+        except Exception as e:
+            render_error(e)
+            st.info("Using cached data if available, or showing empty state.")
+            # Try to get cached data without cache bust
+            try:
+                raw_repos = cached_list_user_repos(
+                    settings.github_username,
+                    settings.github_token,
+                    None
+                )
+            except Exception:
+                raw_repos = []
         
         # Convert to RepoSummary objects
         all_repo_summaries = [to_repo_summary(repo) for repo in raw_repos]
@@ -98,6 +124,19 @@ def main():
             help="Repositories without pushes for this many days are considered stale"
         )
         
+        # Cache controls (continued)
+        st.sidebar.markdown("---")
+        st.sidebar.header("💾 Cache Controls")
+        
+        if st.sidebar.button("🧹 Clear Cache"):
+            clear_cache()
+            st.sidebar.success("Cache cleared!")
+            st.rerun()
+        
+        # Show cache stats
+        stats = cache_stats()
+        render_cache_info(stats)
+        
         # Clear filters button
         if st.sidebar.button("🗑️ Clear All Filters"):
             st.rerun()
@@ -119,6 +158,9 @@ def main():
         
         # Display summary statistics using components
         render_stat_cards(filtered_repos)
+        
+        # Show last updated info
+        render_last_updated(repo_fetch_time, "Repository data")
         
         # Add some spacing
         st.markdown("---")
@@ -164,9 +206,10 @@ def main():
                 try:
                     trend_data = commits_over_time(filtered_repos, settings.github_token, since_iso, until_iso, max_repos)
                     render_trend_line(trend_data)
+                except RateLimitError as e:
+                    render_section_error("Commit Trends", e)
                 except Exception as e:
-                    st.warning(f"Unable to fetch commit trend data: {str(e)[:100]}...")
-                    st.info("This chart requires API access to commit data.")
+                    render_section_error("Commit Trends", e)
             
             with col2:
                 # Commits per Repository Bar Chart
@@ -174,18 +217,20 @@ def main():
                 try:
                     commits_data = commits_per_repo(filtered_repos, settings.github_token, since_iso, until_iso, max_repos)
                     render_commits_bar(commits_data)
+                except RateLimitError as e:
+                    render_section_error("Commits per Repository", e)
                 except Exception as e:
-                    st.warning(f"Unable to fetch commits per repository: {str(e)[:100]}...")
-                    st.info("This chart requires API access to commit data.")
+                    render_section_error("Commits per Repository", e)
                 
                 # Activity Heatmap
                 st.subheader("🔥 Activity Heatmap")
                 try:
                     heatmap_data = heatmap_counts(filtered_repos, settings.github_token, since_iso, until_iso, max_repos)
                     render_heatmap(heatmap_data)
+                except RateLimitError as e:
+                    render_section_error("Activity Heatmap", e)
                 except Exception as e:
-                    st.warning(f"Unable to fetch heatmap data: {str(e)[:100]}...")
-                    st.info("This chart requires API access to commit data.")
+                    render_section_error("Activity Heatmap", e)
         
         else:
             st.info("📊 No repositories available for visualization. Try adjusting your filters.")
@@ -213,8 +258,11 @@ def main():
                             next_steps_docs[repo.full_name] = doc
                         else:
                             missing_files_count += 1
-                    except Exception as e:
-                        st.warning(f"Error fetching NEXT_STEPS.md for {repo.full_name}: {str(e)[:100]}...")
+                    except RateLimitError:
+                        # Skip this repo due to rate limiting, but don't show individual errors
+                        missing_files_count += 1
+                    except Exception:
+                        # Skip this repo due to other errors
                         missing_files_count += 1
                 
                 # Extract tasks by repo for aggregate view
@@ -264,51 +312,65 @@ def main():
         st.header("🏆 Motivation")
         
         if filtered_repos:
-            with st.spinner("Computing activity streaks and badges..."):
-                # Use same bounded repo set as visualizations
-                repos_to_analyze = filtered_repos[:max_repos]
-                
-                # Fetch commit data for streak computation
-                commits_by_repo = {}
-                for repo in repos_to_analyze:
-                    owner, name = repo.full_name.split('/', 1)
+            try:
+                with st.spinner("Computing activity streaks and badges..."):
+                    # Use same bounded repo set as visualizations
+                    repos_to_analyze = filtered_repos[:max_repos]
                     
-                    try:
-                        commits = cached_list_repo_commits(owner, name, settings.github_token, since_iso, until_iso)
-                        commits_by_repo[repo.full_name] = commits
-                    except Exception as e:
-                        # Skip repos that fail to fetch
-                        commits_by_repo[repo.full_name] = []
-                
-                # Compute activity dates and streaks
-                activity_dates = compute_activity_dates(commits_by_repo)
-                
-                # Use cached streak computation with hashable tuple
-                streaks = cached_compute_streaks(tuple(sorted(activity_dates)), until_iso[:10])
-                
-                # Calculate total commits and assign badges
-                total_commits = sum(len(commits) for commits in commits_by_repo.values())
-                badges = assign_badges(streaks, total_commits)
-                
-                # Render streak stats
-                st.subheader("🔥 Activity Streaks")
-                render_streaks(streaks)
-                
-                # Render badges
-                st.subheader("🏅 Achievements")
-                render_badges(badges)
-                
-                # Show analysis summary
-                analyzed_count = len(repos_to_analyze)
-                total_filtered = len(filtered_repos)
-                
-                if analyzed_count < total_filtered:
-                    st.info(
-                        f"📊 Streak analysis based on {analyzed_count} of {total_filtered} repositories "
-                        f"(limited by 'Max Repositories for Charts' setting)."
-                    )
-                else:
-                    st.info(f"📊 Streak analysis based on all {analyzed_count} repositories.")
+                    # Fetch commit data for streak computation
+                    commits_by_repo = {}
+                    rate_limited = False
+                    
+                    for repo in repos_to_analyze:
+                        owner, name = repo.full_name.split('/', 1)
+                        
+                        try:
+                            commits = cached_list_repo_commits(owner, name, settings.github_token, since_iso, until_iso)
+                            commits_by_repo[repo.full_name] = commits
+                        except RateLimitError:
+                            rate_limited = True
+                            commits_by_repo[repo.full_name] = []
+                        except Exception:
+                            # Skip repos that fail to fetch
+                            commits_by_repo[repo.full_name] = []
+                    
+                    # Compute activity dates and streaks
+                    activity_dates = compute_activity_dates(commits_by_repo)
+                    
+                    # Use cached streak computation with hashable tuple
+                    streaks = cached_compute_streaks(tuple(sorted(activity_dates)), until_iso[:10])
+                    
+                    # Calculate total commits and assign badges
+                    total_commits = sum(len(commits) for commits in commits_by_repo.values())
+                    badges = assign_badges(streaks, total_commits)
+                    
+                    # Render streak stats
+                    st.subheader("🔥 Activity Streaks")
+                    render_streaks(streaks)
+                    
+                    # Render badges
+                    st.subheader("🏅 Achievements")
+                    render_badges(badges)
+                    
+                    # Show analysis summary
+                    analyzed_count = len(repos_to_analyze)
+                    total_filtered = len(filtered_repos)
+                    
+                    if rate_limited:
+                        st.warning("⏱️ Some repositories were skipped due to rate limiting. Results may be incomplete.")
+                    
+                    if analyzed_count < total_filtered:
+                        st.info(
+                            f"📊 Streak analysis based on {analyzed_count} of {total_filtered} repositories "
+                            f"(limited by 'Max Repositories for Charts' setting)."
+                        )
+                    else:
+                        st.info(f"📊 Streak analysis based on all {analyzed_count} repositories.")
+            
+            except RateLimitError as e:
+                render_section_error("Motivation", e)
+            except Exception as e:
+                render_section_error("Motivation", e)
         
         else:
             st.info("🏆 No repositories available for motivation analysis. Try adjusting your filters.")

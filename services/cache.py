@@ -84,3 +84,58 @@ def cached_compute_streaks(activity_dates: tuple[str, ...], until: str):
     """Cached version of compute_streaks. Requires hashable tuple of dates."""
     from services.gamification import compute_streaks
     return compute_streaks(set(activity_dates), until)
+
+
+def clear_cache() -> None:
+    """Clear all cached data from the in-memory cache store."""
+    global _cache_store
+    _cache_store.clear()
+
+
+def cache_stats() -> Dict[str, Any]:
+    """
+    Get basic statistics about the current cache state.
+    
+    Returns:
+        Dictionary with cache statistics (no PII or secret values)
+    """
+    if not _cache_store:
+        return {
+            "count": 0,
+            "keys": [],
+            "earliest_expiry": None,
+            "latest_expiry": None
+        }
+    
+    now = time.time()
+    active_entries = []
+    
+    # Find active (non-expired) entries
+    for key, (expires_at, value) in _cache_store.items():
+        if expires_at > now:
+            active_entries.append((key, expires_at))
+    
+    if not active_entries:
+        return {
+            "count": 0,
+            "keys": [],
+            "earliest_expiry": None,
+            "latest_expiry": None
+        }
+    
+    # Extract function names from cache keys for safe display
+    safe_keys = []
+    for key_tuple, _ in active_entries:
+        if isinstance(key_tuple, tuple) and len(key_tuple) > 0:
+            func_name = key_tuple[0] if isinstance(key_tuple[0], str) else "unknown"
+            safe_keys.append(func_name)
+    
+    # Get expiry times
+    expiry_times = [expires_at for _, expires_at in active_entries]
+    
+    return {
+        "count": len(active_entries),
+        "keys": list(set(safe_keys)),  # Unique function names
+        "earliest_expiry": min(expiry_times),
+        "latest_expiry": max(expiry_times)
+    }

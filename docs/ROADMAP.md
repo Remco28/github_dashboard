@@ -51,10 +51,11 @@ This roadmap breaks delivery into clear, reviewable stages aligned to PROJECT.md
 - Risks: Perceived judgment. Mitigation: playful copy, opt‑out toggle.
 
 ## Phase 6 – Robustness & Performance (0.5 day)
+- Status: Completed
 - Goals: Error handling, loading states, caching strategy.
 - Scope: Graceful API failures, rate limit messaging, cache invalidation controls.
-- Deliverables: `services/cache.py`; unified error toasts; refresh button.
-- Acceptance: App remains responsive under failures; refresh updates data predictably.
+- Deliverables: Error classification (`services/errors.py`), bounded retry, unified notifications (`ui/notifications.py`), cache controls (`clear_cache`, `cache_stats`, bypass), last‑updated indicators, and section‑level graceful degradation.
+- Acceptance: App remains responsive under failures; rate limits show reset info; cache controls work; standardized messages across sections.
 
 ## Phase 7 – Polish & Docs (0.5 day)
 - Goals: Usability polish, docs, and configuration.
