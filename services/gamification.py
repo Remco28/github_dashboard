@@ -195,6 +195,7 @@ def detect_stale_repos(repos: List[RepoSummary], threshold_days: int) -> List[Tu
         List of tuples (repo, days_since_push) sorted by days_since_push descending
     """
     stale_repos = []
+    # Use naive UTC for consistency with other filters
     now = datetime.utcnow()
     
     for repo in repos:
@@ -210,6 +211,9 @@ def detect_stale_repos(repos: List[RepoSummary], threshold_days: int) -> List[Tu
                 pushed_at_str = pushed_at_str[:-1] + '+00:00'
             
             pushed_at = datetime.fromisoformat(pushed_at_str.replace('Z', '+00:00'))
+            # Normalize to naive UTC to avoid naive/aware subtraction issues
+            if pushed_at.tzinfo is not None:
+                pushed_at = pushed_at.replace(tzinfo=None)
             days_since_push = (now - pushed_at).days
             
             if days_since_push > threshold_days:

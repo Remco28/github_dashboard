@@ -398,12 +398,15 @@ def main():
         st.header("🚨 Nudges")
         
         if filtered_repos:
-            with st.spinner("Detecting stale repositories..."):
-                # Detect stale repositories from all filtered repos
-                stale_repos = detect_stale_repos(filtered_repos, stale_threshold)
-                
-                # Render stale repository nudges
-                render_stale_nudges(stale_repos, limit=5)
+            try:
+                with st.spinner("Detecting stale repositories..."):
+                    # Detect stale repositories from all filtered repos
+                    stale_repos = detect_stale_repos(filtered_repos, stale_threshold)
+                    
+                    # Render stale repository nudges
+                    render_stale_nudges(stale_repos, limit=5)
+            except Exception as e:
+                render_section_error("Nudges", e)
         
         else:
             st.info("🚨 No repositories available for nudge analysis. Try adjusting your filters.")
