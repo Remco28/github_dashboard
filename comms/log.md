@@ -54,6 +54,7 @@
 [2025-09-04 10:15] [Developer]: IMPL IN_PROGRESS: Implementing dark mode removal - will remove theme toggle, custom CSS, and simplify to light-only theme
 [2025-09-04 10:30] [Developer]: IMPL DONE: Completed dark mode removal - removed theme toggle functions, CSS, plotly template switching, updated docs, removed darkmode.png asset, verified with grep searches. App now uses default light theme only.
 [2025-09-04 10:35] [Architect]: REVIEW PASS: Dark mode removal meets spec; no theme code remains; charts use defaults; asset removed.
+[2025-09-04 10:35] [Architect]: ARCHIVED: Moved Remove Dark Mode spec to comms/tasks/archive/2025-09-04-remove-dark-mode.md.
 [2025-09-04 10:36] [Architect]: DOCS UPDATED: NEXT_STEPS updated with extended time window, section renames, and Nudges tasks; templates cleaned.
 [2025-09-04 14:15] [Architect]: SPEC READY: Phase 9 Per‑Section Refresh & Cache Telemetry at comms/tasks/2025-09-04-per-section-refresh-and-cache-telemetry.md.
 [2025-09-04 14:25] [Architect]: REVIEW PASS: Phase 9 meets spec; telemetry and per-section refresh verified.
@@ -64,3 +65,10 @@
 [2025-09-05 00:36] [Architect]: DOCS UPDATED: Architecture time handling and streak definition; README troubleshooting for streaks and nudges.
 [2025-09-04 15:00] [Developer]: IMPL IN_PROGRESS: Implementing Phase 9 Per-Section Refresh & Cache Telemetry with cache-bust support and telemetry
 [2025-09-04 16:00] [Developer]: IMPL DONE: Completed Phase 9 Per-Section Refresh & Cache Telemetry - added cache telemetry, per-section refresh buttons, cache-bust parameters, and updated UI to display metrics
+[2025-09-04 16:30] [Architect]: SPEC READY: Phase 10 NEXT_STEPS Scalability at comms/tasks/2025-09-04-next-steps-scalability.md
+[2025-09-05 09:00] [Developer]: IMPL IN_PROGRESS: Implementing Phase 10 NEXT_STEPS Scalability with configurable limits, smart prioritization, and enhanced UX
+[2025-09-05 09:15] [Developer]: IMPL DONE: Completed Phase 10 NEXT_STEPS Scalability - added configurable processing limit (10-100 repos), smart sorting by recent activity, progress indicators, enhanced repo selector with search, rate limit warnings, and extended cache TTL to 10 minutes
+[2025-09-05 09:30] [Architect]: REVIEW PASS: Phase 10 NEXT_STEPS Scalability meets spec and acceptance criteria.
+[2025-09-05 09:30] [Architect]: ARCHIVED: Moved Phase 10 spec to comms/tasks/archive/2025-09-04-next-steps-scalability.md.
+[2025-09-05 09:30] [Architect]: DOCS UPDATED: ROADMAP updated with Phase 10 completion.
+

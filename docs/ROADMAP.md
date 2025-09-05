@@ -93,6 +93,14 @@ This roadmap breaks delivery into clear, reviewable stages aligned to PROJECT.md
 - Deliverables: Updated `services/cache.py` with metrics and `cache_bust`; `app.py` buttons and wiring; `ui/notifications.py` cache panel enhancements; analytics passthrough of `cache_bust`.
 - Acceptance: Section refresh bypasses TTL without clearing entire cache; sidebar shows hits/misses and hit rate; no regressions in rate‑limit handling.
 
+## Phase 10 – NEXT_STEPS Scalability (Completed)
+- Status: Completed
+- Goals: Support processing 50-100+ repositories for NEXT_STEPS with configurable limits
+- Scope: Sidebar slider for processing limit, smart prioritization by activity, enhanced repo selector with search, progress indicators, rate limit warnings
+- Deliverables: Updated `app.py` with configurable processing, `ui/components.py` with search-enabled selector, extended cache TTL to 10 minutes
+- Acceptance: Configurable limit (10-100 repos), repositories sorted by recent activity, progress indicators for large sets, search/filter in dropdown, rate limit warnings
+- Risks: Rate limit exhaustion mitigated with warnings and caps
+
 ## Next Actions (Spec Handoff)
 - Author Phase 0–1 spec in `comms/tasks/` with file/function names and acceptance tests.
 - After implementation, review against acceptance criteria; iterate or proceed to next phase.

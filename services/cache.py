@@ -88,8 +88,8 @@ def cached_get_file_contents(owner: str, repo: str, path: str, token: str) -> di
     return get_file_contents(owner, repo, path, token)
 
 
-# Cached wrapper for fetch_next_steps with 5-minute TTL
-@ttl_cache(300)  # 5 minutes
+# Cached wrapper for fetch_next_steps with 10-minute TTL
+@ttl_cache(600)  # 10 minutes
 def cached_fetch_next_steps(owner: str, repo: str, token: str, cache_bust: Optional[str] = None) -> str | None:
     """Cached version of fetch_next_steps."""
     from services.next_steps import fetch_next_steps

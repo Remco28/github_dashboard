@@ -57,6 +57,11 @@ start app → load settings → cached list_user_repos → map to RepoSummary �
 ```
 select repo → fetch `NEXT_STEPS.md` via GitHub Contents API → parse checklists/sections → UI displays tasks & aggregates (read‑only)
 ```
+- Configurable processing limit (10-100 repos) with sidebar slider
+- Smart prioritization by recent activity (pushed_at descending)
+- Enhanced repository selector with search/filter for large lists
+- Progress indicators and rate limit warnings for large processing sets
+- Extended cache TTL (10 minutes) for NEXT_STEPS data
 - Gracefully handle missing/invalid files with guidance to add the template.
 
 ### Refresh & Rate Limits

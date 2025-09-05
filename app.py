@@ -9,7 +9,7 @@ from services.cache import cached_fetch_next_steps
 from services.next_steps import parse_next_steps
 from services.gamification import compute_activity_dates, assign_badges, detect_stale_repos
 from services.errors import RateLimitError
-from ui.components import render_stat_cards, render_repo_table, render_settings_help
+from ui.components import render_stat_cards, render_repo_table, render_settings_help, render_repo_selector_with_search
 from ui.charts import render_language_pie, render_commits_bar, render_trend_line, render_heatmap
 from ui.checklists import render_aggregate, render_repo_next_steps, render_missing_next_steps_guidance
 from ui.gamification import render_badges, render_streaks, render_stale_nudges
@@ -122,6 +122,18 @@ def main():
             max_value=180,
             value=30,
             help="Repositories without pushes for this many days are considered stale"
+        )
+
+        # NEXT_STEPS processing controls
+        st.sidebar.markdown("---")
+        st.sidebar.header("📝 NEXT_STEPS")
+
+        next_steps_limit = st.sidebar.slider(
+            "NEXT_STEPS Processing Limit",
+            min_value=10,
+            max_value=100,
+            value=20,
+            help="Maximum number of repositories to process for NEXT_STEPS analysis"
         )
         
         
@@ -280,14 +292,21 @@ def main():
             next_steps_cache_bust = str(time.time()) if next_steps_refresh_pressed else None
 
             with st.spinner("Loading NEXT_STEPS data..."):
-                # Limit to first 20 repos to keep API calls bounded
-                repos_to_process = filtered_repos[:20]
+                # Sort repos by recent activity (pushed_at descending) and limit processing
+                sorted_repos = sorted(filtered_repos, key=lambda r: r.pushed_at or "", reverse=True)
+                repos_to_process = sorted_repos[:next_steps_limit]
 
                 # Fetch NEXT_STEPS.md files
                 next_steps_docs = {}
                 missing_files_count = 0
 
-                for repo in repos_to_process:
+                # Add progress indicator for large processing sets
+                progress_bar = None
+                if len(repos_to_process) > 20:
+                    progress_bar = st.progress(0, text="Processing NEXT_STEPS files...")
+                    st.info(f"🔄 Processing {len(repos_to_process)} repositories for NEXT_STEPS analysis...")
+
+                for i, repo in enumerate(repos_to_process):
                     owner, name = repo.full_name.split('/', 1)
 
                     try:
@@ -300,10 +319,21 @@ def main():
                     except RateLimitError:
                         # Skip this repo due to rate limiting, but don't show individual errors
                         missing_files_count += 1
+                        if len(repos_to_process) > 20:
+                            st.warning("⚠️ Rate limit encountered during NEXT_STEPS processing. Some repositories may be skipped.")
                     except Exception:
                         # Skip this repo due to other errors
                         missing_files_count += 1
-                
+
+                    # Update progress bar
+                    if progress_bar and len(repos_to_process) > 20:
+                        progress = (i + 1) / len(repos_to_process)
+                        progress_bar.progress(progress, text=f"Processing NEXT_STEPS files... ({i + 1}/{len(repos_to_process)})")
+
+                # Complete progress bar
+                if progress_bar:
+                    progress_bar.empty()
+
                 # Extract tasks by repo for aggregate view
                 tasks_by_repo = {
                     repo_name: doc.tasks 
@@ -318,11 +348,10 @@ def main():
                     st.markdown("---")
                     st.subheader("📋 Repository Details")
                     
-                    selected_repo = st.selectbox(
-                        "Select repository to view tasks:",
+                    selected_repo = render_repo_selector_with_search(
                         options=list(next_steps_docs.keys()),
                         key="next_steps_repo_selector",
-                        help="Choose a repository to see its NEXT_STEPS.md tasks"
+                        help_text="Choose a repository to see its NEXT_STEPS.md tasks"
                     )
                     
                     if selected_repo:
@@ -336,11 +365,11 @@ def main():
                 # Processing summary
                 processed_count = len(repos_to_process)
                 total_filtered = len(filtered_repos)
-                
+
                 if processed_count < total_filtered:
                     st.info(
                         f"📊 Processed {processed_count} of {total_filtered} repositories. "
-                        f"To improve performance, only the first 20 repositories are analyzed for NEXT_STEPS."
+                        f"Repositories are sorted by recent activity and limited to {next_steps_limit} for performance."
                     )
         
         else:

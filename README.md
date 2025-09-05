@@ -6,7 +6,7 @@ A comprehensive Streamlit dashboard that provides insights into your GitHub repo
 
 - **Repository Overview**: Browse all your repositories with detailed stats and filtering options
 - **Interactive Visualizations**: Language distribution, commit trends, activity heatmaps, and per-repository analytics
-- **NEXT_STEPS Integration**: Parse and display NEXT_STEPS.md files from your repositories with task aggregation
+- **NEXT_STEPS Integration**: Parse and display NEXT_STEPS.md files from your repositories with task aggregation, configurable processing limits (10-100 repos), and smart prioritization
 - **Gamification**: Activity streaks, achievement badges, and progress tracking to stay motivated
   - Streaks count consecutive days ending at your most recent active day (no need to commit “today” to retain a streak)
 - **Nudges & Insights**: Detect stale repositories and get gentle reminders to keep projects active
@@ -117,7 +117,8 @@ The application will:
 
 **Missing NEXT_STEPS Data**
 - NEXT_STEPS.md files must be in the repository root
-- Files are processed for the first 20 repositories only (for performance)
+- Files are processed based on the configurable "NEXT_STEPS Processing Limit" (10-100 repos)
+- Repositories are prioritized by recent activity for processing
 - Use repository filters to focus on specific projects
 
 **Performance Issues**
