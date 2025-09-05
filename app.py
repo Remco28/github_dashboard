@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from config.settings import get_settings
 from services.cache import cached_list_user_repos, cached_list_repo_commits, cached_compute_streaks, clear_cache, cache_stats, cache_metrics
 from services.github_client import to_repo_summary
@@ -148,10 +148,11 @@ def main():
             st.rerun()
         
         # Calculate time window for commit-based charts (used in Visualizations and Motivation)
-        until_dt = datetime.utcnow()
+        # Use timezone-aware UTC per Python 3.12+ deprecation guidance
+        until_dt = datetime.now(timezone.utc)
         since_dt = until_dt - timedelta(days=activity_days)
-        since_iso = since_dt.replace(microsecond=0).isoformat() + 'Z'
-        until_iso = until_dt.replace(microsecond=0).isoformat() + 'Z'
+        since_iso = since_dt.replace(microsecond=0).isoformat().replace('+00:00', 'Z')
+        until_iso = until_dt.replace(microsecond=0).isoformat().replace('+00:00', 'Z')
 
         # Apply filters
         include_private = None

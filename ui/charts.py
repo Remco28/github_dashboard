@@ -31,7 +31,7 @@ def render_language_pie(lang_map: Dict[str, int]) -> None:
         legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_commits_bar(data: List[Tuple[str, int]]) -> None:
@@ -69,7 +69,7 @@ def render_commits_bar(data: List[Tuple[str, int]]) -> None:
     
     fig.update_traces(texttemplate='%{x}', textposition='outside')
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_trend_line(points: List[Tuple[str, int]]) -> None:
@@ -105,7 +105,7 @@ def render_trend_line(points: List[Tuple[str, int]]) -> None:
         marker=dict(size=8, color='#1f77b4')
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_heatmap(day_counts: Dict[str, int]) -> None:
@@ -180,4 +180,4 @@ def render_heatmap(day_counts: Dict[str, int]) -> None:
             showlegend=False
         )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')

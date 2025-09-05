@@ -8,6 +8,7 @@ A comprehensive Streamlit dashboard that provides insights into your GitHub repo
 - **Interactive Visualizations**: Language distribution, commit trends, activity heatmaps, and per-repository analytics
 - **NEXT_STEPS Integration**: Parse and display NEXT_STEPS.md files from your repositories with task aggregation
 - **Gamification**: Activity streaks, achievement badges, and progress tracking to stay motivated
+  - Streaks count consecutive days ending at your most recent active day (no need to commit “today” to retain a streak)
 - **Nudges & Insights**: Detect stale repositories and get gentle reminders to keep projects active
 - **Smart Caching**: Intelligent caching system to respect GitHub API rate limits
 - **Per‑Section Refresh**: Refresh Visualizations, NEXT_STEPS, or Motivation independently without clearing the whole cache
@@ -123,6 +124,14 @@ The application will:
 - Reduce "Max Repositories for Charts" for faster loading
 - Use cache controls to balance freshness vs. speed
 - Filter repositories to focus on currently active projects
+
+**Streak Shows 0 Days**
+- Ensure your activity window includes recent commits (increase the sidebar “Activity Window”).
+- Clear cache or use “Refresh Motivation” to recompute from fresh commit data.
+- Some commits only include `author.date`; the app handles this — if still 0, verify there were commits on consecutive UTC dates.
+
+**Nudges Don’t Show Expected Repos**
+- Nudges respect your current filters (language, visibility, activity window). Widen filters or adjust the “Stale Threshold (days)”.
 
 ### Cache Controls
 

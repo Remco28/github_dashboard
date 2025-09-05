@@ -89,7 +89,7 @@ def render_repo_table(repo_summaries: list[RepoSummary]) -> None:
     # Display interactive dataframe
     st.dataframe(
         df,
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
         column_config={
             "URL": st.column_config.LinkColumn(

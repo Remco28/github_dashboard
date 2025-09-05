@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Tuple
 from models.github_types import RepoSummary
 
@@ -37,8 +37,11 @@ def compute_activity_dates(commits_by_repo: Dict[str, List[Dict]]) -> set[str]:
         for commit in repo_commits:
             # Extract date from commit timestamp
             try:
-                # Handle different timestamp formats
-                timestamp = commit.get("commit", {}).get("committer", {}).get("date")
+                # Handle different timestamp formats and missing committer
+                timestamp = (
+                    commit.get("commit", {}).get("committer", {}).get("date")
+                    or commit.get("commit", {}).get("author", {}).get("date")
+                )
                 if not timestamp:
                     continue
                 
@@ -59,62 +62,57 @@ def compute_activity_dates(commits_by_repo: Dict[str, List[Dict]]) -> set[str]:
 def compute_streaks(activity_dates: set[str], until: str) -> StreakStats:
     """
     Compute current and longest activity streaks from activity dates.
-    
+
+    Definitions:
+    - Current streak: number of consecutive days ending at the most recent active day.
+      (If there was no commit today, a non-zero current streak can still exist.)
+
     Args:
         activity_dates: Set of activity dates in YYYY-MM-DD format
-        until: End date for streak computation in YYYY-MM-DD format
-        
+        until: End date (YYYY-MM-DD); used only for caching consistency
+
     Returns:
         StreakStats with current streak, longest streak, and last active date
     """
     if not activity_dates:
         return StreakStats(current=0, longest=0, last_active=None)
-    
-    # Compute current streak by walking backwards from until date
-    current_streak = 0
-    last_active = None
-    
+
+    # Identify last active day
     try:
-        cursor = datetime.fromisoformat(until)
-        
+        last_active = max(activity_dates)
+    except ValueError:
+        return StreakStats(current=0, longest=0, last_active=None)
+
+    # Compute current streak by walking backwards from last_active
+    current_streak = 0
+    try:
+        cursor = datetime.fromisoformat(last_active)
         while cursor.strftime('%Y-%m-%d') in activity_dates:
             current_streak += 1
-            last_active = cursor.strftime('%Y-%m-%d')
             cursor -= timedelta(days=1)
     except ValueError:
-        # Invalid until date format
-        pass
-    
+        current_streak = 0
+
     # Compute longest streak by scanning sorted dates for contiguous runs
     longest_streak = 0
-    current_run = 1
-    
+    current_run = 0
+
     sorted_dates = sorted(activity_dates)
-    if not sorted_dates:
-        return StreakStats(current=current_streak, longest=0, last_active=last_active)
-    
     prev_date = None
-    
+
     for date_str in sorted_dates:
         try:
             current_date = datetime.fromisoformat(date_str)
-            
             if prev_date and current_date == prev_date + timedelta(days=1):
-                # Consecutive day
                 current_run += 1
             else:
-                # Gap in dates - check if this run was the longest
-                longest_streak = max(longest_streak, current_run)
+                # Start of a new run
                 current_run = 1
-            
+            longest_streak = max(longest_streak, current_run)
             prev_date = current_date
         except ValueError:
-            # Skip malformed dates
             continue
-    
-    # Check the final run
-    longest_streak = max(longest_streak, current_run)
-    
+
     return StreakStats(
         current=current_streak,
         longest=longest_streak,
@@ -195,8 +193,8 @@ def detect_stale_repos(repos: List[RepoSummary], threshold_days: int) -> List[Tu
         List of tuples (repo, days_since_push) sorted by days_since_push descending
     """
     stale_repos = []
-    # Use naive UTC for consistency with other filters
-    now = datetime.utcnow()
+    # Use naive UTC for consistency with other filters and deprecation safety
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     
     for repo in repos:
         if not repo.pushed_at:

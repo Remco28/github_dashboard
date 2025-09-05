@@ -22,8 +22,8 @@ def render_badges(badges: List[Badge]) -> None:
         with cols[i % 4]:
             # Create a metric-style display for each badge
             st.metric(
-                label="",
-                value=f"{badge.emoji} {badge.label}",
+                label=badge.label,
+                value=badge.emoji,
                 help=badge.description
             )
     
@@ -33,8 +33,8 @@ def render_badges(badges: List[Badge]) -> None:
         for i, badge in enumerate(badges[4:8]):  # Show up to 8 badges total
             with cols2[i]:
                 st.metric(
-                    label="",
-                    value=f"{badge.emoji} {badge.label}",
+                    label=badge.label,
+                    value=badge.emoji,
                     help=badge.description
                 )
 
@@ -156,7 +156,14 @@ def render_stale_nudges(items: List[Tuple[RepoSummary, int]], limit: int = 5) ->
         
         with col_link:
             if repo.html_url:
-                st.link_button("Open", repo.html_url, help="Open repository on GitHub")
+                # Compatibility: link_button was added in newer Streamlit versions
+                try:
+                    if hasattr(st, "link_button"):
+                        st.link_button("Open", repo.html_url, help="Open repository on GitHub")
+                    else:
+                        st.markdown(f"[Open]({repo.html_url})")
+                except Exception:
+                    st.markdown(f"[Open]({repo.html_url})")
     
     # Show count summary
     total_stale = len(items)

@@ -60,5 +60,7 @@
 [2025-09-04 14:25] [Architect]: ARCHIVED: Moved Phase 9 spec to comms/tasks/archive/2025-09-04-per-section-refresh-and-cache-telemetry.md.
 [2025-09-04 14:25] [Architect]: DOCS UPDATED: ARCHITECTURE and ROADMAP reflect Phase 9 changes.
 [2025-09-04 15:48] [Architect]: DOCS UPDATED: README features and cache controls include per-section refresh & telemetry; ARCHITECTURE 'planned' entries corrected; ROADMAP Phase 7 note added; NEXT_STEPS template links point to repo file.
+[2025-09-05 00:35] [Architect]: FIXES: Timezone-safe ISO windowing; naive/aware datetime normalization; commit date fallback to author; badge label accessibility; link_button fallback.
+[2025-09-05 00:36] [Architect]: DOCS UPDATED: Architecture time handling and streak definition; README troubleshooting for streaks and nudges.
 [2025-09-04 15:00] [Developer]: IMPL IN_PROGRESS: Implementing Phase 9 Per-Section Refresh & Cache Telemetry with cache-bust support and telemetry
 [2025-09-04 16:00] [Developer]: IMPL DONE: Completed Phase 9 Per-Section Refresh & Cache Telemetry - added cache telemetry, per-section refresh buttons, cache-bust parameters, and updated UI to display metrics

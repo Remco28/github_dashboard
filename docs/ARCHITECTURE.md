@@ -13,8 +13,8 @@ This document sketches the current architecture shape so developers understand h
 - Analytics (`services/analytics.py`) – Chart‑ready aggregations (commits by day, repo stats, trends). Implemented in Phase 3.
  - NEXT_STEPS Parser (`services/next_steps.py`) – Fetches and parses `NEXT_STEPS.md` into actionable tasks. Implemented in Phase 4; rendered via `ui/checklists.py` with aggregate and repo detail views.
 - Gamification (`services/gamification.py`) – Computes streaks, badges, and “stale repo” nudges. Implemented in Phase 5 with:
-  - compute_activity_dates → set of active days from commit timestamps
-  - compute_streaks → current/longest streaks across selected repos/time window
+  - compute_activity_dates → set of active days from commit timestamps (uses committer.date then falls back to author.date)
+  - compute_streaks → current/longest streaks across selected repos/time window; current streak counts consecutive days ending at the most recent active day (does not require a commit “today”)
   - assign_badges → simple rules (e.g., weekly flame, marathon)
   - detect_stale_repos → days since push using RepoSummary.pushed_at
   - UI integration via `ui/gamification.py` (badges, streaks, nudges)
@@ -102,6 +102,14 @@ user clicks section Refresh (Charts/NEXT_STEPS/Motivation) → bypass cache for 
 - Resilience (Phase 6): Auth/Rate‑limit aware errors; unified notifications; cache controls (bypass/clear); consistent last‑updated indicators.
 - Observability: minimal INFO logs (no secrets); show lightweight “last updated” indicators in UI.
   - Phase 9 Cache Telemetry: Sidebar cache panel displays active entries, cached function names, and cache performance (hits/misses, hit rate, top functions) sourced from `services/cache.cache_metrics()`.
+
+### Time Handling
+- External timestamps (GitHub API) arrive as ISO strings with `Z`. We parse to timezone‑aware UTC and normalize to safe comparisons.
+- For API windows we build ISO strings with `Z` using `datetime.now(timezone.utc)`, stripping microseconds.
+- For internal day/delta math we compare using naive UTC (timezone removed) to avoid naive/aware subtraction errors.
+
+### Nudges & Filters
+- Nudges evaluate the currently filtered repository set and use the configured stale threshold (days). Adjust filters or threshold to broaden/narrow results.
 
 ## Development Guidelines
 

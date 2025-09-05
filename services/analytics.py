@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Set, Optional, Tuple, Dict
 from collections import defaultdict
 from models.github_types import RepoSummary
@@ -25,7 +25,8 @@ def filter_repos(
         Filtered list of repository summaries
     """
     filtered_repos = []
-    now = datetime.utcnow()
+    # Use naive UTC for consistent comparisons
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     
     for repo in repos:
         # Language filter
