@@ -211,16 +211,40 @@ def main():
                 st.subheader("🎯 Language Distribution")
                 lang_dist = language_distribution(filtered_repos)
                 render_language_pie(lang_dist)
-
+                
                 # Commits Over Time
                 st.subheader("📈 Commit Trends")
+                # Granularity control (default managed in session state); UI placed below the chart
+                default_freq = "Weekly" if activity_days > 120 else "Daily"
+                if "trend_freq" not in st.session_state:
+                    st.session_state["trend_freq"] = default_freq
+
+                current_trend_freq = st.session_state.get("trend_freq", default_freq)
+                freq = "D" if current_trend_freq == "Daily" else "W"
                 try:
-                    trend_data = commits_over_time(filtered_repos, settings.github_token, since_iso, until_iso, max_repos, cache_bust=charts_cache_bust)
+                    trend_data = commits_over_time(
+                        filtered_repos,
+                        settings.github_token,
+                        since_iso,
+                        until_iso,
+                        max_repos,
+                        freq=freq,
+                        cache_bust=charts_cache_bust
+                    )
                     render_trend_line(trend_data)
                 except RateLimitError as e:
                     render_section_error("Commit Trends", e)
                 except Exception as e:
                     render_section_error("Commit Trends", e)
+
+                # Place the Trend Granularity control below the chart for visual consistency
+                st.radio(
+                    "Trend Granularity",
+                    ["Daily", "Weekly"],
+                    key="trend_freq",
+                    help="Choose daily or weekly aggregation for the trend chart",
+                    horizontal=True
+                )
 
             with col2:
                 # Commits per Repository Bar Chart

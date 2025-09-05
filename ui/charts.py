@@ -62,7 +62,7 @@ def render_commits_bar(data: List[Tuple[str, int]]) -> None:
     )
     
     fig.update_layout(
-        height=max(300, len(filtered_data) * 40),
+        height=400,
         yaxis={'categoryorder': 'total ascending'},
         showlegend=False
     )
