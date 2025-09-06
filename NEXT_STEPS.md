@@ -2,6 +2,10 @@
 
 This repository’s working checklist for near-term improvements and polish.
 
+## Appearance Tweaks
+- [ ] Restore radio and slider back to orange!
+- [ ] Add better distinction for sections.
+
 ## Filters & Time Window
 - [ ] Support activity windows beyond 365 days (e.g., 730 days)
 - [ ] Consider an "All time" option with clear rate-limit guidance
@@ -11,7 +15,7 @@ This repository’s working checklist for near-term improvements and polish.
 - [x] Add “Repos without NEXT_STEPS.md” quick create guidance
 
 ## Rollout
-- [ ] Add NEXT_STEPS.md files to other repos (Owner task)
+- [x] Add NEXT_STEPS.md files to other repos (Owner task)
 
 ---
 
