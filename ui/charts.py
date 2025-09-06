@@ -20,7 +20,7 @@ def render_language_pie(lang_map: Dict[str, int]) -> None:
         df, 
         values='Count', 
         names='Language',
-        title="Repository Distribution by Language",
+        title="Language Distribution",
         color_discrete_sequence=px.colors.qualitative.Set3
     )
     
@@ -35,7 +35,7 @@ def render_language_pie(lang_map: Dict[str, int]) -> None:
             xanchor="center",
             x=0.5
         ),
-        margin=dict(l=10, r=10, t=50, b=70),
+        margin=dict(l=10, r=10, t=64, b=70),
         autosize=True
     )
     
@@ -68,7 +68,7 @@ def render_commits_bar(data: List[Tuple[str, int]]) -> None:
         x='Commits',
         y='Repository',
         orientation='h',
-        title="Commits per Repository",
+        title="Commits per Repo",
         color='Commits',
         color_continuous_scale='Blues'
     )
@@ -76,7 +76,8 @@ def render_commits_bar(data: List[Tuple[str, int]]) -> None:
     fig.update_layout(
         height=400,
         yaxis={'categoryorder': 'total ascending'},
-        showlegend=False
+        showlegend=False,
+        margin=dict(l=10, r=10, t=64, b=40)
     )
     
     fig.update_traces(texttemplate='%{x}', textposition='outside')
@@ -100,7 +101,7 @@ def render_trend_line(points: List[Tuple[str, int]]) -> None:
         df,
         x='Date',
         y='Commits',
-        title="Commits Over Time",
+        title="Commit Trends",
         markers=True,
         line_shape='spline'
     )
@@ -109,7 +110,8 @@ def render_trend_line(points: List[Tuple[str, int]]) -> None:
         height=400,
         xaxis_title="Date",
         yaxis_title="Number of Commits",
-        hovermode='x unified'
+        hovermode='x unified',
+        margin=dict(l=10, r=10, t=64, b=40)
     )
     
     fig.update_traces(
@@ -171,7 +173,8 @@ def render_heatmap(day_counts: Dict[str, int]) -> None:
         fig.update_layout(
             height=400,
             xaxis_title="Day of Week",
-            yaxis_title="Average Commits"
+            yaxis_title="Average Commits",
+            margin=dict(l=10, r=10, t=64, b=40)
         )
     else:
         # For shorter periods, show daily activity
@@ -189,7 +192,8 @@ def render_heatmap(day_counts: Dict[str, int]) -> None:
             height=300,
             yaxis=dict(visible=False),
             xaxis_title="Date",
-            showlegend=False
+            showlegend=False,
+            margin=dict(l=10, r=10, t=64, b=40)
         )
     
     st.plotly_chart(fig, width='stretch', config={"displayModeBar": True, "responsive": True})

@@ -16,8 +16,8 @@ def render_stat_cards(repo_summaries: list[RepoSummary]) -> None:
     archived_count = sum(1 for repo in repo_summaries if repo.archived)
     languages_count = len(set(repo.language for repo in repo_summaries if repo.language))
     
-    # Display metrics in columns
-    col1, col2, col3, col4 = st.columns(4)
+    # Display metrics in columns: Total | Private | Public | Archived | Languages
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.metric(
@@ -30,18 +30,24 @@ def render_stat_cards(repo_summaries: list[RepoSummary]) -> None:
         st.metric(
             "Private",
             private_count,
-            delta=f"{public_count} public",
-            help="Private vs public repositories"
+            help="Number of private repositories"
         )
-    
+
     with col3:
+        st.metric(
+            "Public",
+            public_count,
+            help="Number of public repositories"
+        )
+
+    with col4:
         st.metric(
             "Archived",
             archived_count,
             help="Number of archived repositories"
         )
     
-    with col4:
+    with col5:
         st.metric(
             "Languages",
             languages_count,

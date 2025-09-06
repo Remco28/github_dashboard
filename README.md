@@ -60,6 +60,25 @@ GITHUB_TOKEN=your_github_personal_access_token
 GITHUB_USERNAME=your_github_username
 ```
 
+### Theming (optional)
+
+You can adjust the app’s look using Streamlit’s config file at `.streamlit/config.toml`:
+
+```
+[theme]
+base = "light"
+primaryColor = "#1f77b4"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F6F8FA"
+textColor = "#262730"
+font = "sans serif"
+```
+
+Notes:
+- Theme controls colors and font globally without custom CSS.
+- It doesn’t hide header controls (menu/deploy) or reposition Plotly toolbars; those were handled with targeted CSS.
+- Adjusting theme can reduce custom CSS surface area for future tweaks.
+
 ### GitHub Token Setup
 
 1. Go to GitHub Settings → Developer settings → Personal access tokens

@@ -6,6 +6,7 @@ from services.cache import cached_list_user_repos, cached_list_repo_commits, cac
 from services.github_client import to_repo_summary
 from services.analytics import filter_repos, languages_set, language_distribution, commits_per_repo, commits_over_time, heatmap_counts
 from services.cache import cached_fetch_next_steps
+
 from services.next_steps import parse_next_steps
 from services.gamification import compute_activity_dates, assign_badges, detect_stale_repos
 from services.errors import RateLimitError
@@ -62,7 +63,9 @@ header [data-testid*="Menu" i] { display: none !important; }
     width: 100% !important;
 }
 [data-testid="stPlotlyChart"] .modebar {
-    right: 16px !important; /* pull further in so it doesn't touch edge */
+    top: 8px !important;
+    bottom: auto !important;
+    right: 16px !important; /* consistent top-right placement */
 }
 
 /* Optional: modest spacing tweaks, avoid header/tooling containers */
@@ -121,7 +124,7 @@ st.markdown(
 
 
 def main():
-    st.title("📊 GitHub Repository Dashboard")
+    st.title("GitHub Repository Dashboard")
     
     try:
         # Load configuration
@@ -323,12 +326,10 @@ def main():
 
             with col1:
                 # Language Distribution Pie Chart
-                st.subheader("🎯 Language Distribution")
                 lang_dist = language_distribution(filtered_repos)
                 render_language_pie(lang_dist)
                 
                 # Commits Over Time
-                st.subheader("📈 Commit Trends")
                 # Granularity control (default managed in session state); UI placed below the chart
                 default_freq = "Weekly" if activity_days > 120 else "Daily"
                 if "trend_freq" not in st.session_state:
@@ -363,7 +364,6 @@ def main():
 
             with col2:
                 # Commits per Repository Bar Chart
-                st.subheader("📊 Commits per Repository")
                 try:
                     commits_data = commits_per_repo(filtered_repos, settings.github_token, since_iso, until_iso, max_repos, cache_bust=charts_cache_bust)
                     render_commits_bar(commits_data)
@@ -373,7 +373,6 @@ def main():
                     render_section_error("Commits per Repository", e)
 
                 # Activity Heatmap
-                st.subheader("🔥 Activity Heatmap")
                 try:
                     heatmap_data = heatmap_counts(filtered_repos, settings.github_token, since_iso, until_iso, max_repos, cache_bust=charts_cache_bust)
                     render_heatmap(heatmap_data)
@@ -387,11 +386,11 @@ def main():
         
         # NEXT_STEPS Section
         st.markdown("---")
-        st.header("📝 Project Tasks (NEXT_STEPS)")
+        st.header("📝 Project Tasks")
 
         if filtered_repos:
             # Refresh button for NEXT_STEPS
-            next_steps_refresh_pressed = st.button("🔄 Refresh NEXT_STEPS", key="next_steps_refresh", help="Refresh NEXT_STEPS data bypassing cache")
+            next_steps_refresh_pressed = st.button("🔄 Refresh Tasks", key="next_steps_refresh", help="Refresh NEXT_STEPS data bypassing cache")
             next_steps_cache_bust = str(time.time()) if next_steps_refresh_pressed else None
 
             with st.spinner("Loading NEXT_STEPS data..."):
@@ -449,7 +448,7 @@ def main():
                 # Repository selector for detailed view
                 if next_steps_docs:
                     st.markdown("---")
-                    st.subheader("📋 Repository Details")
+                    st.subheader("📋 Task List Viewer")
                     
                     selected_repo = render_repo_selector_with_search(
                         options=list(next_steps_docs.keys()),
