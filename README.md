@@ -1,4 +1,4 @@
-# 📊 GitHub Project Tracker Dashboard
+# 📊 GitHub Repository Dashboard
 
 A comprehensive Streamlit dashboard that provides insights into your GitHub repositories, including visualizations, activity tracking, and productivity features to help you stay motivated and organized.
 

@@ -74,6 +74,7 @@
 [2025-09-06 05:58:56 UTC] ARCHITECT: SPEC READY - Fix sidebar toggle regression by refining CSS/JS in app.py to avoid hiding toolbar ancestors and removing brittle class selectors. See comms/tasks/2025-09-06-fix-sidebar-toggle.md.
 [2025-09-06 06:05:00 UTC] ARCHITECT: SPEC READY - Polish header controls hiding across versions, fix sidebar slider value clipping, and address image width deprecation. See comms/tasks/2025-09-06-polish-header-and-slider.md.
 [2025-09-06 06:10:00 UTC] ARCHITECT: SPEC READY - Hide Deploy button reliably across variants and add chart card styling (borders, radius, spacing). See comms/tasks/2025-09-06-hide-deploy-and-style-charts.md.
+[2025-09-06 07:52:05 UTC] ARCHITECT: Renamed app to "GitHub Repository Dashboard". Updated app title and page_title in app.py and refreshed references in README.md, PROJECT.md, docs/ARCHITECTURE.md, docs/ROADMAP.md, docs/DEPLOYMENT.md, and NEXT_STEPS.md.
 [2025-09-06 06:00] [Developer]: IMPL IN_PROGRESS: Fixing sidebar toggle regression by removing unsafe header/toolbar hiding and replacing broad CSS with targeted selectors
 [2025-09-06 06:05] [Developer]: IMPL DONE: Fixed sidebar toggle regression - removed unsafe CSS/JS hiding toolbar elements, replaced broad selectors with targeted testids, ensured toggle visibility, and fixed image width parameter
 [2025-09-06 06:10] [Developer]: IMPL IN_PROGRESS: Polishing header controls hiding, fixing sidebar slider value clipping, and addressing image width deprecation

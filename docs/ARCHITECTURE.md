@@ -1,4 +1,4 @@
-# Architecture Overview: GitHub Project Tracker Dashboard
+# Architecture Overview: GitHub Repository Dashboard
 
 This document sketches the current architecture shape so developers understand how components relate. It will evolve as features land.
 

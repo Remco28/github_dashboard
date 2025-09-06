@@ -1,4 +1,4 @@
-# GitHub Project Tracker Dashboard: Design and Implementation Plan
+# GitHub Repository Dashboard: Design and Implementation Plan
 
 ## Executive Summary
 This document outlines the design and implementation plan for an interactive dashboard aimed at tracking a personal GitHub account. The dashboard is tailored for a user with a growing library of unfinished coding projects, emphasizing motivation, visualization, and gentle nudges toward completion. It transforms raw GitHub data into fun, gamified insights with charts, graphs, and interactive elements. Key additions include integration with a standardized Markdown file for project next steps, making the tool a lightweight project management aid.

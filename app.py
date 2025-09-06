@@ -40,12 +40,7 @@ header [data-testid*="DeployButton" i] { display: none !important; }
 #MainMenu { visibility: hidden; }
 footer { visibility: hidden; }
 
-/* Robust deploy hiding across versions */
-.stDeployButton { display: none !important; }
-header button[title*="Deploy" i] { display: none !important; }
-header [aria-label*="Deploy" i] { display: none !important; }
-header a[href*="share.streamlit.io"] { display: none !important; }
-header a[href*="deploy" i] { display: none !important; }
+/* Additional header menu variants */
 header [aria-label*="menu" i] { display: none !important; }
 header [data-testid*="Menu" i] { display: none !important; }
 
@@ -76,6 +71,22 @@ header [data-testid*="Menu" i] { display: none !important; }
 /* Sidebar padding to avoid slider value clipping */
 .stSidebar .block-container { padding-right: 28px !important; }
 .stSidebar [data-testid="stSlider"] { padding-right: 12px !important; }
+
+/* DataFrame compact headers and prevent URL column from expanding */
+[data-testid="stDataFrame"] thead th {
+    padding: 6px 8px !important;
+}
+[data-testid="stDataFrame"] tbody td {
+    padding: 6px 8px !important;
+}
+[data-testid="stDataFrame"] td, [data-testid="stDataFrame"] th {
+    max-width: 100%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+/* Removed forced tight width on last (URL) column to allow wider display */
+/* Note: column-specific alignment tweaks for a leading icon column removed */
 
 /* Keep the sidebar toggle visible in all states */
 [data-testid="stSidebarCollapseButton"] {
@@ -110,7 +121,7 @@ st.markdown(
 
 
 def main():
-    st.title("GitHub Repository Dashboard")
+    st.title("📊 GitHub Repository Dashboard")
     
     try:
         # Load configuration

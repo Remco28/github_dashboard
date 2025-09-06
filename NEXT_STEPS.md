@@ -1,4 +1,4 @@
-# NEXT STEPS – GitHub Project Tracker Dashboard
+# NEXT STEPS – GitHub Repository Dashboard
 
 This repository’s working checklist for near-term improvements and polish.
 

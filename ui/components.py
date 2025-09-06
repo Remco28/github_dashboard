@@ -92,10 +92,16 @@ def render_repo_table(repo_summaries: list[RepoSummary]) -> None:
         width='stretch',
         hide_index=True,
         column_config={
+            "Name": st.column_config.TextColumn(
+                "Name",
+                help="Repository name",
+                width="medium",
+                max_chars=40,
+            ),
             "URL": st.column_config.LinkColumn(
-                "Repository URL",
-                help="Click to open repository on GitHub",
-                width="small"
+                "URL",
+                help="Open repository on GitHub",
+                width="large"
             ),
             "Stars": st.column_config.NumberColumn(
                 "Stars",
@@ -120,7 +126,12 @@ def render_repo_table(repo_summaries: list[RepoSummary]) -> None:
             "Last Push": st.column_config.TextColumn(
                 "Last Push",
                 help="Date of last push",
-                width="medium"
+                width="small"
+            ),
+            "Language": st.column_config.TextColumn(
+                "Language",
+                help="Primary language",
+                width="small"
             )
         },
         column_order=["Name", "Private", "Stars", "Forks", "Open Issues", "Language", "Last Push", "URL"]
