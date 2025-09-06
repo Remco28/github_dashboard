@@ -16,21 +16,113 @@ from ui.gamification import render_badges, render_streaks, render_stale_nudges
 from ui.notifications import render_error, render_last_updated, render_cache_info, render_section_error
 
 st.set_page_config(
-    page_title="GitHub Project Tracker Dashboard",
+    page_title="GitHub Repository Dashboard",
     page_icon="📊",
-    layout="wide"
+    layout="wide",
+    menu_items=None
+)
+
+# Hide fullscreen button on images and top menu
+st.markdown("""
+<style>
+/* Hide Streamlit menu/deploy controls (and variants) */
+[data-testid="stMenu"] { display: none !important; }
+[data-testid="stDeployButton"] { display: none !important; }
+.stDeployButton { display: none !important; }
+header button[title*="Deploy" i] { display: none !important; }
+header [aria-label*="Deploy" i] { display: none !important; }
+header a[href*="share.streamlit.io"] { display: none !important; }
+header a[href*="deploy" i] { display: none !important; }
+/* Additional fallbacks for local dev variants */
+header [data-testid="stHeaderActionButton"] { display: none !important; }
+header [data-testid*="DeployButton" i] { display: none !important; }
+/* Older Streamlit IDs */
+#MainMenu { visibility: hidden; }
+footer { visibility: hidden; }
+
+/* Robust deploy hiding across versions */
+.stDeployButton { display: none !important; }
+header button[title*="Deploy" i] { display: none !important; }
+header [aria-label*="Deploy" i] { display: none !important; }
+header a[href*="share.streamlit.io"] { display: none !important; }
+header a[href*="deploy" i] { display: none !important; }
+header [aria-label*="menu" i] { display: none !important; }
+header [data-testid*="Menu" i] { display: none !important; }
+
+/* Plotly chart cards */
+[data-testid="stPlotlyChart"] {
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 10px;
+    background: #fff;
+    padding: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow: hidden; /* keep contents within rounded border */
+}
+[data-testid="stPlotlyChart"] .js-plotly-plot,
+[data-testid="stPlotlyChart"] .plot-container {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+[data-testid="stPlotlyChart"] .modebar {
+    right: 16px !important; /* pull further in so it doesn't touch edge */
+}
+
+/* Optional: modest spacing tweaks, avoid header/tooling containers */
+.block-container { padding-top: 0.75rem !important; }
+
+/* Sidebar padding to avoid slider value clipping */
+.stSidebar .block-container { padding-right: 28px !important; }
+.stSidebar [data-testid="stSlider"] { padding-right: 12px !important; }
+
+/* Keep the sidebar toggle visible in all states */
+[data-testid="stSidebarCollapseButton"] {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Fallback: hide header "Deploy" elements by text/labels in local dev without touching sidebar toggle
+st.markdown(
+    """
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        const nodes = document.querySelectorAll('header a, header button');
+        nodes.forEach(el => {
+          const title = el.getAttribute('title') || '';
+          const label = el.getAttribute('aria-label') || '';
+          const text = (el.textContent || '');
+          const hay = (title + ' ' + label + ' ' + text).toLowerCase();
+          if (hay.includes('deploy')) {
+            el.style.display = 'none';
+          }
+        });
+      } catch (e) { /* no-op */ }
+    });
+    </script>
+    """,
+    unsafe_allow_html=True,
 )
 
 
 def main():
-    st.title("📊 GitHub Project Tracker Dashboard")
+    st.title("GitHub Repository Dashboard")
     
     try:
         # Load configuration
         settings = get_settings()
         
+        # Sidebar logo (centered)
+        col1, col2, col3 = st.sidebar.columns([1, 2, 1])
+        with col2:
+            st.sidebar.image("media/remco28_github.png", width='stretch')
+
         # Sidebar for filters
-        st.sidebar.header("🎛️ Filters")
+        st.sidebar.header("Filters")
         
         # Handle refresh functionality
         refresh_pressed = st.sidebar.button("🔄 Refresh", help="Refresh repository data")

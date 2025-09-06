@@ -28,10 +28,22 @@ def render_language_pie(lang_map: Dict[str, int]) -> None:
     fig.update_layout(
         height=400,
         showlegend=True,
-        legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.2,
+            xanchor="center",
+            x=0.5
+        ),
+        margin=dict(l=10, r=10, t=50, b=70),
+        autosize=True
     )
     
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(
+        fig,
+        width='stretch',
+        config={"displayModeBar": True, "responsive": True}
+    )
 
 
 def render_commits_bar(data: List[Tuple[str, int]]) -> None:
@@ -69,7 +81,7 @@ def render_commits_bar(data: List[Tuple[str, int]]) -> None:
     
     fig.update_traces(texttemplate='%{x}', textposition='outside')
     
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, width='stretch', config={"displayModeBar": True, "responsive": True})
 
 
 def render_trend_line(points: List[Tuple[str, int]]) -> None:
@@ -105,7 +117,7 @@ def render_trend_line(points: List[Tuple[str, int]]) -> None:
         marker=dict(size=8, color='#1f77b4')
     )
     
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, width='stretch', config={"displayModeBar": True, "responsive": True})
 
 
 def render_heatmap(day_counts: Dict[str, int]) -> None:
@@ -180,4 +192,4 @@ def render_heatmap(day_counts: Dict[str, int]) -> None:
             showlegend=False
         )
     
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, width='stretch', config={"displayModeBar": True, "responsive": True})

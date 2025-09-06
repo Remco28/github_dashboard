@@ -71,4 +71,12 @@
 [2025-09-05 09:30] [Architect]: REVIEW PASS: Phase 10 NEXT_STEPS Scalability meets spec and acceptance criteria.
 [2025-09-05 09:30] [Architect]: ARCHIVED: Moved Phase 10 spec to comms/tasks/archive/2025-09-04-next-steps-scalability.md.
 [2025-09-05 09:30] [Architect]: DOCS UPDATED: ROADMAP updated with Phase 10 completion.
-
+[2025-09-06 05:58:56 UTC] ARCHITECT: SPEC READY - Fix sidebar toggle regression by refining CSS/JS in app.py to avoid hiding toolbar ancestors and removing brittle class selectors. See comms/tasks/2025-09-06-fix-sidebar-toggle.md.
+[2025-09-06 06:05:00 UTC] ARCHITECT: SPEC READY - Polish header controls hiding across versions, fix sidebar slider value clipping, and address image width deprecation. See comms/tasks/2025-09-06-polish-header-and-slider.md.
+[2025-09-06 06:10:00 UTC] ARCHITECT: SPEC READY - Hide Deploy button reliably across variants and add chart card styling (borders, radius, spacing). See comms/tasks/2025-09-06-hide-deploy-and-style-charts.md.
+[2025-09-06 06:00] [Developer]: IMPL IN_PROGRESS: Fixing sidebar toggle regression by removing unsafe header/toolbar hiding and replacing broad CSS with targeted selectors
+[2025-09-06 06:05] [Developer]: IMPL DONE: Fixed sidebar toggle regression - removed unsafe CSS/JS hiding toolbar elements, replaced broad selectors with targeted testids, ensured toggle visibility, and fixed image width parameter
+[2025-09-06 06:10] [Developer]: IMPL IN_PROGRESS: Polishing header controls hiding, fixing sidebar slider value clipping, and addressing image width deprecation
+[2025-09-06 06:15] [Developer]: IMPL DONE: Completed header controls polish - added robust CSS fallbacks for menu/deploy hiding across Streamlit versions, added sidebar padding to prevent slider value clipping, and reverted image width to 'stretch' to address deprecation warning
+[2025-09-06 06:20] [Developer]: IMPL IN_PROGRESS: Implementing UI polish for deploy button hiding and chart card styling
+[2025-09-06 06:25] [Developer]: IMPL DONE: Completed UI polish - added robust deploy button hiding with additional CSS selectors for various Streamlit variants, added card styling to Plotly charts with borders, rounded corners, padding, and spacing, ensured sidebar slider clipping fix and image width deprecation fix remain in place
