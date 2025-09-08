@@ -6,6 +6,10 @@ This repository’s working checklist for near-term improvements and polish.
 - [ ] Restore radio and slider back to orange!
 - [ ] Add better distinction for sections.
 
+## Content
+- [ ] Explain how system resources are shared between Windows and WSL
+- [ ] Explain how you know which environment you're in. The program Windows Terminal, but the system you're in could be Ubuntu or Windows.
+
 ## Filters & Time Window
 - [ ] Support activity windows beyond 365 days (e.g., 730 days)
 - [ ] Consider an "All time" option with clear rate-limit guidance
