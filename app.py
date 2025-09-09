@@ -10,7 +10,7 @@ from services.cache import cached_fetch_next_steps
 from services.next_steps import parse_next_steps
 from services.gamification import compute_activity_dates, assign_badges, detect_stale_repos
 from services.errors import RateLimitError
-from ui.components import render_stat_cards, render_repo_table, render_settings_help, render_repo_selector_with_search
+from ui.components import render_stat_cards, render_repo_table, render_settings_help, render_repo_selector_with_search, render_section_header
 from ui.charts import render_language_pie, render_commits_bar, render_trend_line, render_heatmap
 from ui.checklists import render_aggregate, render_repo_next_steps, render_missing_next_steps_guidance
 from ui.gamification import render_badges, render_streaks, render_stale_nudges
@@ -314,7 +314,7 @@ def main():
         
         # Visualizations Section
         st.markdown("---")
-        st.header("📊 Visualizations")
+        render_section_header("Visualizations", level='h2', accent='blue')
 
         if filtered_repos:
             # Refresh button for charts
@@ -386,7 +386,7 @@ def main():
         
         # NEXT_STEPS Section
         st.markdown("---")
-        st.header("📝 Project Tasks")
+        render_section_header("Project Tasks", level='h2', accent='gold')
 
         if filtered_repos:
             # Refresh button for NEXT_STEPS
@@ -448,7 +448,7 @@ def main():
                 # Repository selector for detailed view
                 if next_steps_docs:
                     st.markdown("---")
-                    st.subheader("📋 Task List Viewer")
+                    render_section_header("Task List Viewer", level='h3', accent='green')
                     
                     selected_repo = render_repo_selector_with_search(
                         options=list(next_steps_docs.keys()),
@@ -479,7 +479,7 @@ def main():
         
         # Motivation Section (Streaks & Badges)
         st.markdown("---")
-        st.header("🏆 Motivation")
+        render_section_header("Motivation", level='h2', accent='purple')
 
         if filtered_repos:
             # Refresh button for Motivation
@@ -551,7 +551,7 @@ def main():
         
         # Nudges Section (Stale Repositories)  
         st.markdown("---")
-        st.header("🚨 Nudges")
+        render_section_header("Nudges", level='h2', accent='red')
         
         if filtered_repos:
             try:
