@@ -1,6 +1,7 @@
 import streamlit as st
 from typing import Dict, List
 from services.next_steps import TaskItem, NextStepsDoc, summarize_tasks
+from ui.components import render_progress_circle
 
 
 def render_aggregate(tasks_by_repo: Dict[str, List[TaskItem]]) -> None:
@@ -58,28 +59,25 @@ def render_aggregate(tasks_by_repo: Dict[str, List[TaskItem]]) -> None:
             help="Overall completion rate"
         )
     
-    # Display per-repository progress
+    # Display per-repository progress as compact grid (2 columns; 1 on mobile)
     st.subheader("Repository Progress")
-    
+
+    repo_items = []
     for repo_name, tasks in tasks_by_repo.items():
         repo_open, repo_done = summarize_tasks(tasks)
         repo_total = repo_open + repo_done
-        
         if repo_total == 0:
             continue
-        
         progress = repo_done / repo_total if repo_total > 0 else 0
-        
-        col_name, col_progress, col_count = st.columns([3, 2, 1])
-        
-        with col_name:
-            st.write(f"**{repo_name}**")
-        
-        with col_progress:
-            st.progress(progress, text=f"{int(progress * 100)}%")
-        
-        with col_count:
-            st.write(f"{repo_done}/{repo_total}")
+        repo_items.append((repo_name, repo_done, repo_total, int(progress * 100)))
+
+    if repo_items:
+        cols = st.columns(3)
+        for i, (repo_name, repo_done, repo_total, pct) in enumerate(repo_items):
+            with cols[i % 3]:
+                st.markdown(f"**{repo_name}**")
+                render_progress_circle(pct, size=72, key=f"repo-progress-{repo_name}")
+                st.caption(f"{repo_done}/{repo_total}")
 
 
 def render_repo_next_steps(doc: NextStepsDoc) -> None:
@@ -119,7 +117,8 @@ def render_repo_next_steps(doc: NextStepsDoc) -> None:
     
     if total_tasks > 0:
         progress = done_count / total_tasks
-        st.progress(progress, text=f"{int(progress * 100)}% complete")
+        st.write(f"**Overall Progress: {done_count}/{total_tasks} tasks complete**")
+        render_progress_circle(int(progress * 100), size=80, key=f"repo-overall-progress-{doc.repo_full_name}")
     
     # Group tasks by section
     tasks_by_section = {}

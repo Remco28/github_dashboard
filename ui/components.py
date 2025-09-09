@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import plotly.graph_objects as go
 from models.github_types import RepoSummary
 
 
@@ -217,15 +218,18 @@ def ensure_section_header_styles() -> None:
         display: inline; 
         font-weight: 700; 
         line-height: 1.15; 
-        padding-bottom: 2px; 
+        padding: 0 8px 2px; 
         border-radius: 4px; 
         background-image: linear-gradient(var(--gd-accent, #ffd54f), var(--gd-accent, #ffd54f)); 
         background-repeat: no-repeat; 
         background-position: 0 0; 
-        background-size: 100% 4px; 
+        background-size: 100% 8px; 
         transition: background-size .45s ease; 
       }
-      .gd-section-title:hover, .gd-section-title:focus-visible { 
+      .gd-section-title:hover, .gd-section-title:focus-visible,
+      .gd-section-wrap:hover .gd-section-title,
+      .gd-section-wrap:focus-within .gd-section-title,
+      .gd-section-title[data-gd-active="true"] { 
         background-size: 100% 100%; 
       }
       .gd-section-title:focus-visible { 
@@ -241,6 +245,98 @@ def ensure_section_header_styles() -> None:
         .gd-section-title { transition: none; } 
       }
     </style>
+    <script>
+    (function(){
+      if (window._gdHeaderEnhancerLoaded) return; 
+      window._gdHeaderEnhancerLoaded = true;
+      
+      const setupHeader = el => {
+        try {
+          // Find container - try multiple selectors in order
+          let block = el.closest('div[data-testid="stVerticalBlock"]') || 
+                      el.closest('div.block-container') || 
+                      el.closest('section.main');
+          
+          // Fallback: walk up parent hierarchy
+          if (!block) {
+            let parent = el.parentElement;
+            for (let i = 0; i < 5 && parent; i++) {
+              if (parent.tagName === 'DIV' && parent.className) {
+                block = parent;
+                break;
+              }
+              parent = parent.parentElement;
+            }
+          }
+          
+          if (block && !block.classList.contains('gd-section-wrap')) {
+            block.classList.add('gd-section-wrap');
+            
+            // Add mouse listeners for data attribute activation
+            block.addEventListener('mouseenter', () => {
+              el.setAttribute('data-gd-active', 'true');
+            });
+            
+            block.addEventListener('mouseleave', () => {
+              el.removeAttribute('data-gd-active');
+            });
+
+            // Keyboard focus within the section keeps highlight
+            block.addEventListener('focusin', () => {
+              el.setAttribute('data-gd-active', 'true');
+            });
+            block.addEventListener('focusout', (ev) => {
+              // Only remove if focus left the block entirely
+              if (!block.contains(ev.relatedTarget)) {
+                el.removeAttribute('data-gd-active');
+              }
+            });
+          }
+        } catch(_) {}
+      };
+      
+      const headers = () => Array.from(document.querySelectorAll('.gd-section-title'));
+      const allBlocks = () => Array.from(document.querySelectorAll('div[data-testid="stVerticalBlock"]'));
+      const getNearestBlock = (el) => el.closest('div[data-testid="stVerticalBlock"]') || el.closest('div.block-container') || el.closest('section.main');
+      
+      const bindRangeBlocks = () => {
+        const hs = headers();
+        const blocks = allBlocks();
+        if (!hs.length || !blocks.length) return;
+        
+        // Build header info with block index
+        const infos = hs.map((el, idx) => {
+          const block = getNearestBlock(el);
+          const bi = blocks.indexOf(block);
+          el.dataset.gdId = String(idx);
+          return { el, block, bi: bi < 0 ? 0 : bi };
+        }).sort((a,b) => a.bi - b.bi);
+        
+        for (let i = 0; i < infos.length; i++) {
+          const cur = infos[i];
+          const next = infos[i+1];
+          const end = next ? next.bi : blocks.length;
+          for (let j = cur.bi; j < end; j++) {
+            const b = blocks[j];
+            if (!b) continue;
+            if (!b.classList.contains('gd-section-wrap')) b.classList.add('gd-section-wrap');
+            const key = `gdBoundFor-${cur.el.dataset.gdId}`;
+            if (b.dataset[key]) continue; // skip if already bound for this header
+            b.dataset[key] = '1';
+            b.addEventListener('mouseenter', () => cur.el.setAttribute('data-gd-active', 'true'));
+            b.addEventListener('mouseleave', () => cur.el.removeAttribute('data-gd-active'));
+            b.addEventListener('focusin', () => cur.el.setAttribute('data-gd-active', 'true'));
+            b.addEventListener('focusout', (ev) => { if (!b.contains(ev.relatedTarget)) cur.el.removeAttribute('data-gd-active'); });
+          }
+        }
+      };
+      const mo = new MutationObserver(scan); 
+      mo.observe(document.body, {childList:true, subtree:true});
+      document.addEventListener('DOMContentLoaded', () => { scan(); bindRangeBlocks(); }); 
+      scan();
+      bindRangeBlocks();
+    })();
+    </script>
     """, unsafe_allow_html=True)
     st.session_state['_gd_section_css_loaded'] = True
 
@@ -265,3 +361,54 @@ def render_section_header(title: str, icon: str | None = None, *, level: str = '
         f"<{tag} class='gd-section' style='text-align:{align};'><span class='{cls}' tabindex='0'>{safe_icon}{title}</span></{tag}>",
         unsafe_allow_html=True,
     )
+
+
+def render_progress_circle(percent: int, *, size: int = 90, thickness: int = 10, color: str = "#64b5f6", key: str | None = None) -> None:
+    """Render a circular progress indicator with centered percentage.
+    
+    Args:
+        percent: Progress percentage (0-100)
+        size: Chart size in pixels
+        thickness: Ring thickness in pixels  
+        color: Color for the progress arc
+    """
+    # Create donut chart with two slices
+    fig = go.Figure(data=[
+        go.Pie(
+            values=[percent, 100 - percent],
+            hole=.7,  # Large hole for donut effect
+            marker=dict(
+                colors=[color, "#f0f0f0"],  # Progress color and background
+                line=dict(width=0)  # No border
+            ),
+            textinfo='none',  # No text on slices
+            hoverinfo='skip',  # No hover tooltips
+            showlegend=False,
+            direction='clockwise',
+            sort=False
+        )
+    ])
+    
+    # Add percentage text in center
+    fig.add_annotation(
+        text=f"{percent}%",
+        x=0.5,
+        y=0.5,
+        font_size=16,
+        font_color="#333333",
+        font_weight="bold",
+        showarrow=False,
+        xref="paper",
+        yref="paper"
+    )
+    
+    # Configure layout for compact size
+    fig.update_layout(
+        width=size,
+        height=size,
+        margin=dict(l=0, r=0, t=0, b=0),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+    )
+    
+    st.plotly_chart(fig, use_container_width=False, config={'displayModeBar': False}, key=key or f"prog-{percent}-{size}-{thickness}")

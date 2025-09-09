@@ -5,6 +5,7 @@ This repository’s working checklist for near-term improvements and polish.
 ## Appearance Tweaks
 - [ ] Restore radio and slider back to orange!
 - [ ] Add better distinction for sections.
+ - [ ] Section header hover coverage: keep the title highlighted when hovering anywhere within the section content. Consider explicit `st.container()` wrappers per section and a reliable mapping between headers and content blocks.
 
 ## Content
 - [ ] Explain how system resources are shared between Windows and WSL

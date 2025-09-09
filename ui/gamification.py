@@ -4,9 +4,48 @@ from services.gamification import Badge, StreakStats
 from models.github_types import RepoSummary
 
 
+def ensure_badge_styles() -> None:
+    """Inject badge card styles only once per session."""
+    if st.session_state.get('_gd_badge_css_loaded'):
+        return
+        
+    st.markdown("""
+    <style>
+      .gd-badges { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+        gap: 12px; 
+        margin: 12px 0;
+      }
+      .gd-badge { 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center; 
+        padding: 10px 12px; 
+        border: 1px solid rgba(0,0,0,0.08); 
+        border-radius: 10px; 
+        background: linear-gradient(180deg, #fff, #fafafa); 
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04); 
+      }
+      .gd-badge-emoji { 
+        font-size: 28px; 
+        line-height: 1; 
+        margin-bottom: 6px; 
+      }
+      .gd-badge-label { 
+        font-weight: 600; 
+        text-align: center; 
+        font-size: 13px; 
+      }
+    </style>
+    """, unsafe_allow_html=True)
+    st.session_state['_gd_badge_css_loaded'] = True
+
+
 def render_badges(badges: List[Badge]) -> None:
     """
-    Render badges as horizontal chips with emoji and tooltips.
+    Render badges as styled cards with emoji and tooltips.
     
     Args:
         badges: List of Badge objects to display
@@ -15,28 +54,26 @@ def render_badges(badges: List[Badge]) -> None:
         st.info("🏆 Complete coding activities to earn badges!")
         return
     
-    # Create columns for badges
-    cols = st.columns(min(len(badges), 4))  # Max 4 badges per row
+    ensure_badge_styles()
     
-    for i, badge in enumerate(badges):
-        with cols[i % 4]:
-            # Create a metric-style display for each badge
-            st.metric(
-                label=badge.label,
-                value=badge.emoji,
-                help=badge.description
-            )
+    # Build HTML for badge grid
+    badge_html = '<div class="gd-badges">'
     
-    # If more than 4 badges, create a second row
-    if len(badges) > 4:
-        cols2 = st.columns(min(len(badges) - 4, 4))
-        for i, badge in enumerate(badges[4:8]):  # Show up to 8 badges total
-            with cols2[i]:
-                st.metric(
-                    label=badge.label,
-                    value=badge.emoji,
-                    help=badge.description
-                )
+    for badge in badges:
+        # Escape HTML in text fields for security
+        safe_label = badge.label.replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;')
+        safe_desc = badge.description.replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;')
+        
+        badge_html += f'''
+        <div class="gd-badge" title="{safe_desc}">
+            <div class="gd-badge-emoji">{badge.emoji}</div>
+            <div class="gd-badge-label">{safe_label}</div>
+        </div>
+        '''
+    
+    badge_html += '</div>'
+    
+    st.markdown(badge_html, unsafe_allow_html=True)
 
 
 def render_streaks(stats: StreakStats) -> None:
@@ -75,34 +112,19 @@ def render_streaks(stats: StreakStats) -> None:
                 "N/A",
                 help="No recent activity found"
             )
-    
-    # Progress visualization for current streak
-    if stats.longest > 0:
-        progress = min(stats.current / max(stats.longest, 7), 1.0)  # Cap at 100%
-        progress_text = f"{stats.current}/{max(stats.longest, 7)} days"
-        
-        if stats.current > stats.longest:
-            progress_text = f"🔥 New record! {stats.current} days"
-        
-        st.progress(
-            progress,
-            text=progress_text
-        )
-        
-        # Streak status message
-        if stats.current == 0:
-            if stats.longest > 0:
-                st.warning(f"💪 Time to start a new streak! Your best was {stats.longest} days.")
-            else:
-                st.info("🚀 Ready to start your coding streak journey?")
-        elif stats.current >= 7:
-            st.success(f"🔥 Amazing! You're on a {stats.current}-day streak!")
-        elif stats.current >= 3:
-            st.info(f"👍 Good momentum! {stats.current} days and counting.")
+
+    # Streak status message (left-aligned, below the metrics)
+    if stats.current == 0:
+        if stats.longest > 0:
+            st.warning(f"💪 Time to start a new streak! Your best was {stats.longest} days.")
         else:
-            st.info(f"🌱 Getting started! {stats.current} day streak.")
+            st.info("🚀 Ready to start your coding streak journey?")
+    elif stats.current >= 7:
+        st.success(f"🔥 Amazing! You're on a {stats.current}-day streak!")
+    elif stats.current >= 3:
+        st.info(f"👍 Good momentum! {stats.current} days and counting.")
     else:
-        st.info("📊 Start committing code to build your streak!")
+        st.info(f"🌱 Getting started! {stats.current} day streak.")
 
 
 def render_stale_nudges(items: List[Tuple[RepoSummary, int]], limit: int = 5) -> None:
