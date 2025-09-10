@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import plotly.graph_objects as go
 from models.github_types import RepoSummary
 
 
@@ -16,8 +17,8 @@ def render_stat_cards(repo_summaries: list[RepoSummary]) -> None:
     archived_count = sum(1 for repo in repo_summaries if repo.archived)
     languages_count = len(set(repo.language for repo in repo_summaries if repo.language))
     
-    # Display metrics in columns
-    col1, col2, col3, col4 = st.columns(4)
+    # Display metrics in columns: Total | Private | Public | Archived | Languages
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.metric(
@@ -30,18 +31,24 @@ def render_stat_cards(repo_summaries: list[RepoSummary]) -> None:
         st.metric(
             "Private",
             private_count,
-            delta=f"{public_count} public",
-            help="Private vs public repositories"
+            help="Number of private repositories"
         )
-    
+
     with col3:
+        st.metric(
+            "Public",
+            public_count,
+            help="Number of public repositories"
+        )
+
+    with col4:
         st.metric(
             "Archived",
             archived_count,
             help="Number of archived repositories"
         )
     
-    with col4:
+    with col5:
         st.metric(
             "Languages",
             languages_count,
@@ -92,10 +99,16 @@ def render_repo_table(repo_summaries: list[RepoSummary]) -> None:
         width='stretch',
         hide_index=True,
         column_config={
+            "Name": st.column_config.TextColumn(
+                "Name",
+                help="Repository name",
+                width="medium",
+                max_chars=40,
+            ),
             "URL": st.column_config.LinkColumn(
-                "Repository URL",
-                help="Click to open repository on GitHub",
-                width="small"
+                "URL",
+                help="Open repository on GitHub",
+                width="large"
             ),
             "Stars": st.column_config.NumberColumn(
                 "Stars",
@@ -120,7 +133,12 @@ def render_repo_table(repo_summaries: list[RepoSummary]) -> None:
             "Last Push": st.column_config.TextColumn(
                 "Last Push",
                 help="Date of last push",
-                width="medium"
+                width="small"
+            ),
+            "Language": st.column_config.TextColumn(
+                "Language",
+                help="Primary language",
+                width="small"
             )
         },
         column_order=["Name", "Private", "Stars", "Forks", "Open Issues", "Language", "Last Push", "URL"]
@@ -186,3 +204,183 @@ def render_settings_help(username: str) -> None:
         • **Rate limits:** Use "Bypass Cache" sparingly, or wait for reset
         • **Missing data:** Try refreshing or clearing cache
         """)
+
+
+def ensure_section_header_styles() -> None:
+    """Inject section header styles with :has() hover effects."""
+    st.markdown("""
+    <style>
+      .gd-section { margin: 16px 0 8px; }
+      .gd-section-title { 
+        display: inline; 
+        font-weight: 700; 
+        line-height: 1.15; 
+        padding: 0 8px 2px; 
+        border-radius: 4px; 
+        background-image: linear-gradient(var(--gd-accent, #ffd54f), var(--gd-accent, #ffd54f)); 
+        background-repeat: no-repeat; 
+        background-position: 0 0; 
+        background-size: 100% 8px; 
+        transition: background-size .45s ease; 
+      }
+      
+      /* Direct hover/focus on section title */
+      .gd-section-title:hover, .gd-section-title:focus-visible { 
+        background-size: 100% 100%; 
+      }
+      
+      /* CSS :has() rules for section-wide hover - only activate deepest hovered section */
+      [data-testid="stVerticalBlock"]
+        :is(:hover, :focus-within)
+        :has(> [data-testid="stMarkdownContainer"] .gd-section-title)
+        :not(:has([data-testid="stVerticalBlock"] :is(:hover, :focus-within) .gd-section-title))
+        .gd-section-title {
+        background-size: 100% 100%;
+      }
+      
+      /* Fallback for browsers without :has() support */
+      .gd-section-title[data-gd-active="true"] { 
+        background-size: 100% 100%; 
+      }
+      
+      .gd-section-title:focus-visible { 
+        outline: 2px solid var(--gd-accent, #ffd54f); 
+        outline-offset: 2px; 
+      }
+      .gd-accent-gold { --gd-accent: #ffd54f; }
+      .gd-accent-blue { --gd-accent: #64b5f6; }
+      .gd-accent-green { --gd-accent: #81c784; }
+      .gd-accent-red { --gd-accent: #ef9a9a; }
+      .gd-accent-purple { --gd-accent: #b39ddb; }
+      @media (prefers-reduced-motion: reduce) { 
+        .gd-section-title { transition: none; } 
+      }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Progressive enhancement fallback for browsers without :has() support
+    st.markdown("""
+    <script>
+    // Only run fallback if :has() is not supported
+    if (!CSS.supports('selector(:has(*))')) {
+        console.log('CSS :has() not supported, adding fallback listeners');
+        
+        // Delegated event listeners on document body
+        document.body.addEventListener('mouseover', function(e) {
+            const target = e.target.closest('[data-testid="stVerticalBlock"]');
+            if (target) {
+                const title = target.querySelector('.gd-section-title');
+                if (title) {
+                    title.setAttribute('data-gd-active', 'true');
+                }
+            }
+        });
+        
+        document.body.addEventListener('mouseout', function(e) {
+            const target = e.target.closest('[data-testid="stVerticalBlock"]');
+            if (target) {
+                const title = target.querySelector('.gd-section-title');
+                if (title) {
+                    title.removeAttribute('data-gd-active');
+                }
+            }
+        });
+        
+        document.body.addEventListener('focusin', function(e) {
+            const target = e.target.closest('[data-testid="stVerticalBlock"]');
+            if (target) {
+                const title = target.querySelector('.gd-section-title');
+                if (title) {
+                    title.setAttribute('data-gd-active', 'true');
+                }
+            }
+        });
+        
+        document.body.addEventListener('focusout', function(e) {
+            const target = e.target.closest('[data-testid="stVerticalBlock"]');
+            if (target) {
+                const title = target.querySelector('.gd-section-title');
+                if (title) {
+                    title.removeAttribute('data-gd-active');
+                }
+            }
+        });
+    } else {
+        console.log('CSS :has() is supported, using CSS-only approach');
+    }
+    </script>
+    """, unsafe_allow_html=True)
+    
+
+
+def render_section_header(title: str, icon: str | None = None, *, level: str = 'h2', accent: str = 'gold', align: str = 'left') -> None:
+    """Render an animated section header with gradient highlight effect.
+    
+    Args:
+        title: Header text
+        icon: Optional emoji icon 
+        level: HTML heading level ('h2' or 'h3')
+        accent: Color accent ('gold', 'blue', or 'green')
+        align: Text alignment ('left' or 'center')
+    """
+    ensure_section_header_styles()
+    
+    safe_icon = (icon + ' ') if icon else ''
+    cls = f"gd-section-title gd-accent-{accent}"
+    tag = 'h2' if level == 'h2' else 'h3'
+    
+    st.markdown(
+        f"<{tag} class='gd-section' style='text-align:{align};'><span class='{cls}' tabindex='0'>{safe_icon}{title}</span></{tag}>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_progress_circle(percent: int, *, size: int = 90, thickness: int = 10, color: str = "#64b5f6", key: str | None = None) -> None:
+    """Render a circular progress indicator with centered percentage.
+    
+    Args:
+        percent: Progress percentage (0-100)
+        size: Chart size in pixels
+        thickness: Ring thickness in pixels  
+        color: Color for the progress arc
+    """
+    # Create donut chart with two slices
+    fig = go.Figure(data=[
+        go.Pie(
+            values=[percent, 100 - percent],
+            hole=.7,  # Large hole for donut effect
+            marker=dict(
+                colors=[color, "#f0f0f0"],  # Progress color and background
+                line=dict(width=0)  # No border
+            ),
+            textinfo='none',  # No text on slices
+            hoverinfo='skip',  # No hover tooltips
+            showlegend=False,
+            direction='clockwise',
+            sort=False
+        )
+    ])
+    
+    # Add percentage text in center
+    fig.add_annotation(
+        text=f"{percent}%",
+        x=0.5,
+        y=0.5,
+        font_size=16,
+        font_color="#333333",
+        font_weight="bold",
+        showarrow=False,
+        xref="paper",
+        yref="paper"
+    )
+    
+    # Configure layout for compact size
+    fig.update_layout(
+        width=size,
+        height=size,
+        margin=dict(l=0, r=0, t=0, b=0),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+    )
+    
+    st.plotly_chart(fig, use_container_width=False, config={'displayModeBar': False}, key=key or f"prog-{percent}-{size}-{thickness}")

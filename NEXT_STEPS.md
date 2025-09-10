@@ -1,6 +1,12 @@
-# NEXT STEPS – GitHub Project Tracker Dashboard
+# NEXT STEPS – GitHub Repository Dashboard
 
 This repository’s working checklist for near-term improvements and polish.
+
+## Appearance Tweaks
+- [x] Add better distinction for sections.
+- [x] Section header hover coverage: keep the title highlighted when hovering anywhere within the section content. Consider explicit `st.container()` wrappers per section and a reliable mapping between headers and content blocks.
+- [ ] Remove extra horizontal rules
+- [ ] Update font to Google Sans Code
 
 ## Filters & Time Window
 - [ ] Support activity windows beyond 365 days (e.g., 730 days)
@@ -11,7 +17,7 @@ This repository’s working checklist for near-term improvements and polish.
 - [x] Add “Repos without NEXT_STEPS.md” quick create guidance
 
 ## Rollout
-- [ ] Add NEXT_STEPS.md files to other repos (Owner task)
+- [x] Add NEXT_STEPS.md files to other repos (Owner task)
 
 ---
 

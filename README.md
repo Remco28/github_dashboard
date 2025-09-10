@@ -1,4 +1,4 @@
-# 📊 GitHub Project Tracker Dashboard
+# 📊 GitHub Repository Dashboard
 
 A comprehensive Streamlit dashboard that provides insights into your GitHub repositories, including visualizations, activity tracking, and productivity features to help you stay motivated and organized.
 
@@ -59,6 +59,25 @@ Create a `.env` file in the project root with the following variables:
 GITHUB_TOKEN=your_github_personal_access_token
 GITHUB_USERNAME=your_github_username
 ```
+
+### Theming (optional)
+
+You can adjust the app’s look using Streamlit’s config file at `.streamlit/config.toml`:
+
+```
+[theme]
+base = "light"
+primaryColor = "#1f77b4"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F6F8FA"
+textColor = "#262730"
+font = "sans serif"
+```
+
+Notes:
+- Theme controls colors and font globally without custom CSS.
+- It doesn’t hide header controls (menu/deploy) or reposition Plotly toolbars; those were handled with targeted CSS.
+- Adjusting theme can reduce custom CSS surface area for future tweaks.
 
 ### GitHub Token Setup
 

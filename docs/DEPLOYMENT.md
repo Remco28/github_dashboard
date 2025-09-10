@@ -1,6 +1,6 @@
 # 🚢 Deployment Guide
 
-This guide provides step-by-step instructions for deploying the GitHub Project Tracker Dashboard using Streamlit Community Cloud or Docker.
+This guide provides step-by-step instructions for deploying the GitHub Repository Dashboard using Streamlit Community Cloud or Docker.
 
 ## 📋 Prerequisites
 
@@ -168,4 +168,3 @@ For additional support, refer to:
 - [Streamlit Community Cloud Documentation](https://docs.streamlit.io/streamlit-community-cloud)
 - [Docker Documentation](https://docs.docker.com/)
 - [GitHub API Documentation](https://docs.github.com/en/rest)
-

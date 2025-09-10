@@ -1,4 +1,4 @@
-# GitHub Project Tracker Dashboard – Roadmap
+# GitHub Repository Dashboard – Roadmap
 
 This roadmap breaks delivery into clear, reviewable stages aligned to PROJECT.md. Each stage lists goals, scope, deliverables, acceptance criteria, and risks. Time estimates assume part‑time execution.
 
