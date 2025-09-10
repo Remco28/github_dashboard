@@ -140,3 +140,9 @@
 - Logo integration uses base64 encoding for seamless display (media/logo_trans_blue_med.png)
 
 [2025-09-10 12:35:00 UTC] DESIGNER_DEV: TYPOGRAPHY & LAYOUT - Final styling refinements achieved professional appearance with consistent brand identity. Section headers use distinctive Bebas Neue font while maintaining accessibility. Main title features gradient text effect matching theme colors (#576D82 to #374151) with proper logo placement.
+[2025-09-10 16:10:00 UTC] [Architect]: SPEC READY: Sidebar toggle for cache stats at comms/tasks/2025-09-10-sidebar-cache-stats-toggle.md.
+[2025-09-10 16:30:00 UTC] [Architect]: REVIEW PASS: Sidebar cache stats toggle meets spec. Default hidden; sidebar-only rendering gated by 🤓 toggle with tooltip; telemetry preserved. Minor enhancement accepted: metrics + expander layout in sidebar.
+[2025-09-10 16:30:30 UTC] [Architect]: ARCHIVED: Moved spec to comms/tasks/archive/2025-09-10-sidebar-cache-stats-toggle.md.
+[2025-09-10 16:15:00 UTC] [Developer]: IMPL IN_PROGRESS: Implementing sidebar toggle for cache stats with default hidden state and sidebar-only rendering
+[2025-09-10 16:25:00 UTC] [Developer]: IMPL DONE: Completed sidebar toggle for cache stats - added 🤓 toggle control with tooltip, modified render_cache_info to accept location parameter, cache stats now render in sidebar only when enabled (default: hidden)
+[2025-09-10 16:40:00 UTC] [Developer]: ENHANCEMENT DONE: Improved cache statistics display with structured metrics cards, added tooltips for Cache Entries and Hit Rate explanations, removed distracting emojis from metric labels, kept 🔍 for Cache Details expander, cleaner professional appearance

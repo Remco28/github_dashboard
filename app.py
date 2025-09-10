@@ -318,16 +318,22 @@ def main():
         st.sidebar.markdown("---")
         st.sidebar.header("💾 Cache Controls")
         
+        # Toggle for showing cache stats
+        show_cache_stats = getattr(st.sidebar, "toggle", st.sidebar.checkbox)(
+            "🤓", help="Display cache stats", key="show_cache_stats"
+        )
+        
         if st.sidebar.button("🧹 Clear Cache"):
             clear_cache()
             st.sidebar.success("Cache cleared!")
             st.rerun()
         
-        # Show cache stats with telemetry
-        stats = cache_stats()
-        telemetry = cache_metrics()
-        merged_stats = {**stats, **telemetry}
-        render_cache_info(merged_stats)
+        # Show cache stats with telemetry only if toggle is enabled
+        if show_cache_stats:
+            stats = cache_stats()
+            telemetry = cache_metrics()
+            merged_stats = {**stats, **telemetry}
+            render_cache_info(merged_stats, location="sidebar")
         
         # Settings help panel
         render_settings_help(settings.github_username)
