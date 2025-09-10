@@ -99,33 +99,45 @@ def render_last_updated(ts: Optional[float], label: str = "Data") -> None:
         st.caption(f"🕐 {label} last updated: Invalid timestamp")
 
 
-def render_cache_info(cache_stats: dict) -> None:
+def render_cache_info(cache_stats: dict, location: str = "main") -> None:
     """
-    Render cache statistics information.
+    Render cache statistics information using structured metrics display.
 
     Args:
         cache_stats: Dictionary containing cache statistics
+        location: Where to render the info ("main" or "sidebar")
     """
+    dst = st.sidebar if location == "sidebar" else st
     count = cache_stats.get("count", 0)
 
     if count == 0:
-        st.info("💾 Cache is empty")
+        dst.info("💾 Cache is empty")
         return
 
-    # Show basic cache info
-    keys = cache_stats.get("keys", [])
-    keys_display = ", ".join(keys[:3])  # Show first 3 function names
-    if len(keys) > 3:
-        keys_display += f" and {len(keys) - 3} more"
+    # Main cache entries metric
+    dst.metric(
+        label="Cache Entries",
+        value=count,
+        help="Number of active cached function results"
+    )
 
+    # Performance metrics if telemetry available
+    if "total_hits" in cache_stats:
+        total_hits = cache_stats["total_hits"]
+        total_misses = cache_stats["total_misses"]
+        hit_rate = cache_stats["hit_rate"]
+        
+        dst.metric(
+            label="Cache Hit Rate",
+            value=f"{hit_rate:.1%}",
+            delta=f"{total_hits} hits, {total_misses} misses",
+            help="Percentage of requests served from cache vs. requiring fresh API calls"
+        )
+
+    # Expiry information as caption
     earliest = cache_stats.get("earliest_expiry")
     latest = cache_stats.get("latest_expiry")
-
-    info_text = f"💾 **Cache Status:** {count} active entries"
-
-    if keys:
-        info_text += f"\n📊 **Cached functions:** {keys_display}"
-
+    
     if earliest and latest:
         try:
             now = time.time()
@@ -133,26 +145,28 @@ def render_cache_info(cache_stats: dict) -> None:
             latest_mins = int((latest - now) / 60)
 
             if earliest_mins <= 0:
-                info_text += f"\n⏰ **Expiry:** Some entries expiring soon"
+                dst.caption("Some entries expiring soon")
             else:
-                info_text += f"\n⏰ **Expiry:** {earliest_mins}-{latest_mins} minutes remaining"
+                dst.caption(f"Expires in {earliest_mins}-{latest_mins} minutes")
         except (OSError, ValueError):
             pass
 
-    # Add telemetry if available
-    if "total_hits" in cache_stats:
-        total_hits = cache_stats["total_hits"]
-        total_misses = cache_stats["total_misses"]
-        hit_rate = cache_stats["hit_rate"]
-        top_3 = cache_stats.get("top_3_by_hits", [])
-
-        info_text += f"\n📈 **Cache Performance:** {total_hits} hits, {total_misses} misses ({hit_rate:.1%} hit rate)"
-
-        if top_3:
-            top_display = ", ".join([f"{name} ({hits})" for name, hits in top_3])
-            info_text += f"\n🏆 **Top functions:** {top_display}"
-
-    st.info(info_text)
+    # Detailed information in expander
+    with dst.expander("🔍 Cache Details"):
+        keys = cache_stats.get("keys", [])
+        if keys:
+            keys_display = ", ".join(keys[:5])  # Show first 5 function names
+            if len(keys) > 5:
+                keys_display += f" + {len(keys) - 5} more"
+            st.write(f"**Cached functions:** {keys_display}")
+        
+        # Top performers if available
+        if "total_hits" in cache_stats:
+            top_3 = cache_stats.get("top_3_by_hits", [])
+            if top_3:
+                st.write("**Top performers:**")
+                for name, hits in top_3:
+                    st.write(f"• {name}: {hits} hits")
 
 
 def render_loading_placeholder(message: str = "Loading...") -> None:
