@@ -210,9 +210,17 @@ def ensure_section_header_styles() -> None:
     """Inject section header styles with :has() hover effects."""
     st.markdown("""
     <style>
-      .gd-section { margin: 16px 0 8px; }
+      @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+      
+      .gd-section { margin: 0 0 8px; }
+      
+      /* Reduce spacing around horizontal rules */
+      hr { margin: 8px 0 4px 0 !important; }
+      
       .gd-section-title { 
         display: inline; 
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.5em;
         font-weight: 700; 
         line-height: 1.15; 
         padding: 0 8px 2px; 

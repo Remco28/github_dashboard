@@ -1,6 +1,7 @@
 import streamlit as st
 import time
 from datetime import datetime, timedelta, timezone
+import base64
 from config.settings import get_settings
 from services.cache import cached_list_user_repos, cached_list_repo_commits, cached_compute_streaks, clear_cache, cache_stats, cache_metrics
 from services.github_client import to_repo_summary
@@ -17,7 +18,7 @@ from ui.gamification import render_badges, render_streaks, render_stale_nudges
 from ui.notifications import render_error, render_last_updated, render_cache_info, render_section_error
 
 st.set_page_config(
-    page_title="GitHub Repository Dashboard",
+    page_title="GITHUB DASHBOARD",
     page_icon="📊",
     layout="wide",
     menu_items=None
@@ -171,8 +172,30 @@ st.markdown(
 
 
 
+def get_logo_base64():
+    """Load and encode logo image as base64."""
+    try:
+        with open("media/logo_trans_blue_med.png", "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    except FileNotFoundError:
+        return ""
+
 def main():
-    st.title("GitHub Repository Dashboard")
+    # Custom title with logo below
+    st.markdown(
+        """
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h1 style="font-size: 4rem; background: linear-gradient(135deg, #576D82 0%, #374151 100%); 
+                       -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+                       background-clip: text; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+                       letter-spacing: 0.05em; font-weight: 600; margin: 0 0 0.4rem 0;">
+                GITHUB DASHBOARD
+            </h1>
+            <img src="data:image/png;base64,{logo_b64}" style="height: 4rem; width: 4rem;">
+        </div>
+        """.format(logo_b64=get_logo_base64()),
+        unsafe_allow_html=True
+    )
     
     try:
         # Load configuration
@@ -341,9 +364,6 @@ def main():
         # Show last updated info
         render_last_updated(repo_fetch_time, "Repository data")
         
-        # Add some spacing
-        st.markdown("---")
-        
         # Display repositories table using components
         render_repo_table(filtered_repos)
         
@@ -499,7 +519,6 @@ def main():
                     
                     # Show guidance for missing files
                     if missing_files_count > 0:
-                        st.markdown("---")
                         render_missing_next_steps_guidance(missing_files_count)
                     
                     # Processing summary
