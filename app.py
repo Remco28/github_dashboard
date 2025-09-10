@@ -27,6 +27,7 @@ st.set_page_config(
 # Hide fullscreen button on images and top menu
 st.markdown("""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Crimson+Text:ital,wght@0,400;1,400&display=swap');
 /* Hide Streamlit menu/deploy controls (and variants) */
 [data-testid="stMenu"] { display: none !important; }
 [data-testid="stDeployButton"] { display: none !important; }
@@ -144,6 +145,12 @@ header [data-testid*="Menu" i] { display: none !important; }
     opacity: 1;
 }
 
+/* Text shadows for statistics metrics */
+[data-testid="stMetricLabel"],
+[data-testid="stMetricValue"] {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -185,11 +192,9 @@ def main():
     st.markdown(
         """
         <div style="text-align: center; margin-bottom: 2rem;">
-            <h1 style="font-size: 4rem; background: linear-gradient(135deg, #576D82 0%, #374151 100%); 
-                       -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
-                       background-clip: text; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
-                       letter-spacing: 0.05em; font-weight: 600; margin: 0 0 0.4rem 0;">
-                GITHUB DASHBOARD
+            <h1 style="font-weight: 600; margin: 0 0 0.4rem 0;">
+                <span style="font-size: 4rem; color: #566C81; font-family: 'JetBrains Mono', Consolas, Monaco, 'Lucida Console', monospace;">DASHBOARD</span>
+                <span style="font-size: 2rem; font-style: italic; color: #566C81; margin-left: 0.5rem; font-family: 'Crimson Text', Cambria, 'Times New Roman', serif; position: relative; top: -1rem;">for GitHub</span>
             </h1>
             <img src="data:image/png;base64,{logo_b64}" style="height: 4rem; width: 4rem;">
         </div>

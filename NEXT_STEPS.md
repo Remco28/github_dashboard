@@ -7,8 +7,8 @@ This repository’s working checklist for near-term improvements and polish.
 - [x] Add better distinction for sections.
 - [x] Section header hover coverage: keep the title highlighted when hovering anywhere within the section content. Consider explicit `st.container()` wrappers per section and a reliable mapping between headers and content blocks.
 - [x] Remove extra horizontal rules
-- [ ] Remove the cache stats bar. Hide it until we reveal it? Make a toggle with description "🤓"
-- [ ] Make the 5 stats have a shadow to stand out
+- [x] Remove the cache stats bar. Hide it until we reveal it? Make a toggle with description "🤓"
+- [x] Add text shadows to stats text
 - [ ] Make badges narrower
 
 ## Filters & Time Window
