@@ -1,21 +1,54 @@
-import streamlit as st
+import base64
 import time
 from datetime import datetime, timedelta, timezone
-import base64
-from config.settings import get_settings
-from services.cache import cached_list_user_repos, cached_list_repo_commits, cached_compute_streaks, clear_cache, cache_stats, cache_metrics
-from services.github_client import to_repo_summary
-from services.analytics import filter_repos, languages_set, language_distribution, commits_per_repo, commits_over_time, heatmap_counts
-from services.cache import cached_fetch_next_steps
 
-from services.next_steps import parse_next_steps
-from services.gamification import compute_activity_dates, assign_badges, detect_stale_repos
+import streamlit as st
+
+from config.settings import get_settings
+from services.analytics import (
+    commits_over_time,
+    commits_per_repo,
+    filter_repos,
+    heatmap_counts,
+    language_distribution,
+    languages_set,
+)
+from services.cache import (
+    cache_metrics,
+    cache_stats,
+    cached_compute_streaks,
+    cached_fetch_next_steps,
+    cached_list_repo_commits,
+    cached_list_user_repos,
+    clear_cache,
+)
 from services.errors import RateLimitError
-from ui.components import render_stat_cards, render_repo_table, render_settings_help, render_repo_selector_with_search, render_section_header
-from ui.charts import render_language_pie, render_commits_bar, render_trend_line, render_heatmap
-from ui.checklists import render_aggregate, render_repo_next_steps, render_missing_next_steps_guidance
-from ui.gamification import render_badges, render_streaks, render_stale_nudges
-from ui.notifications import render_error, render_last_updated, render_cache_info, render_section_error
+from services.gamification import assign_badges, compute_activity_dates, detect_stale_repos
+from services.github_client import to_repo_summary
+from services.next_steps import parse_next_steps
+from ui.charts import render_commits_bar, render_heatmap, render_language_pie, render_trend_line
+from ui.checklists import (
+    render_aggregate,
+    render_missing_next_steps_guidance,
+    render_repo_next_steps,
+)
+from ui.components import (
+    render_repo_selector_with_search,
+    render_repo_table,
+    render_section_header,
+    render_settings_help,
+    render_stat_cards,
+    inject_global_styles,
+    inject_header_deploy_hider,
+    get_logo_base64,
+)
+from ui.gamification import render_badges, render_stale_nudges, render_streaks
+from ui.notifications import (
+    render_cache_info,
+    render_error,
+    render_last_updated,
+    render_section_error,
+)
 
 st.set_page_config(
     page_title="GITHUB DASHBOARD",
@@ -24,168 +57,9 @@ st.set_page_config(
     menu_items=None
 )
 
-# Hide fullscreen button on images and top menu
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Crimson+Text:ital,wght@0,400;1,400&display=swap');
-/* Hide Streamlit menu/deploy controls (and variants) */
-[data-testid="stMenu"] { display: none !important; }
-[data-testid="stDeployButton"] { display: none !important; }
-.stDeployButton { display: none !important; }
-header button[title*="Deploy" i] { display: none !important; }
-header [aria-label*="Deploy" i] { display: none !important; }
-header a[href*="share.streamlit.io"] { display: none !important; }
-header a[href*="deploy" i] { display: none !important; }
-/* Additional fallbacks for local dev variants */
-header [data-testid="stHeaderActionButton"] { display: none !important; }
-header [data-testid*="DeployButton" i] { display: none !important; }
-/* Older Streamlit IDs */
-#MainMenu { visibility: hidden; }
-footer { visibility: hidden; }
-
-/* Additional header menu variants */
-header [aria-label*="menu" i] { display: none !important; }
-header [data-testid*="Menu" i] { display: none !important; }
-
-/* Plotly chart cards */
-[data-testid="stPlotlyChart"] {
-    border: 1px solid rgba(0,0,0,0.08);
-    border-radius: 10px;
-    background: #fff;
-    padding: 12px;
-    margin-bottom: 16px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-    box-sizing: border-box;
-    max-width: 100%;
-    overflow: hidden; /* keep contents within rounded border */
-}
-[data-testid="stPlotlyChart"] .js-plotly-plot,
-[data-testid="stPlotlyChart"] .plot-container {
-    max-width: 100% !important;
-    width: 100% !important;
-}
-[data-testid="stPlotlyChart"] .modebar {
-    top: 8px !important;
-    bottom: auto !important;
-    right: 16px !important; /* consistent top-right placement */
-}
-
-/* Optional: modest spacing tweaks, avoid header/tooling containers */
-.block-container { padding-top: 0.75rem !important; }
-
-/* Sidebar padding to avoid slider value clipping */
-.stSidebar .block-container { padding-right: 28px !important; }
-.stSidebar [data-testid="stSlider"] { padding-right: 12px !important; }
-
-/* DataFrame compact headers and prevent URL column from expanding */
-[data-testid="stDataFrame"] thead th {
-    padding: 6px 8px !important;
-}
-[data-testid="stDataFrame"] tbody td {
-    padding: 6px 8px !important;
-}
-[data-testid="stDataFrame"] td, [data-testid="stDataFrame"] th {
-    max-width: 100%;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-}
-/* Removed forced tight width on last (URL) column to allow wider display */
-/* Note: column-specific alignment tweaks for a leading icon column removed */
-
-/* Keep the sidebar toggle visible in all states */
-[data-testid="stSidebarCollapseButton"] {
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-/* Section container styling */
-.gd-section-container {
-    border: 1px solid #dfe1e5;
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    background: #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.12);
-}
-
-/* Enhanced Languages dropdown styling */
-.stSidebar [data-testid="stMultiSelect"] {
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    background: #f9fafb;
-    padding: 2px;
-}
-.stSidebar [data-testid="stMultiSelect"] > div {
-    background: #f9fafb;
-    border: none;
-}
-.stSidebar [data-testid="stMultiSelect"] input::placeholder {
-    color: #6b7280 !important;
-    opacity: 1;
-}
-
-/* Enhanced Search input styling */
-.stSidebar [data-testid="stTextInput"] {
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    background: #f9fafb;
-    padding: 2px;
-}
-.stSidebar [data-testid="stTextInput"] > div {
-    background: #f9fafb;
-    border: none;
-}
-.stSidebar [data-testid="stTextInput"] input {
-    background: #f9fafb !important;
-    border: none !important;
-}
-.stSidebar [data-testid="stTextInput"] input::placeholder {
-    color: #6b7280 !important;
-    opacity: 1;
-}
-
-/* Text shadows for statistics metrics */
-[data-testid="stMetricLabel"],
-[data-testid="stMetricValue"] {
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-# Fallback: hide header "Deploy" elements by text/labels in local dev without touching sidebar toggle
-st.markdown(
-    """
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      try {
-        const nodes = document.querySelectorAll('header a, header button');
-        nodes.forEach(el => {
-          const title = el.getAttribute('title') || '';
-          const label = el.getAttribute('aria-label') || '';
-          const text = (el.textContent || '');
-          const hay = (title + ' ' + label + ' ' + text).toLowerCase();
-          if (hay.includes('deploy')) {
-            el.style.display = 'none';
-          }
-        });
-      } catch (e) { /* no-op */ }
-    });
-    </script>
-    """,
-    unsafe_allow_html=True,
-)
-
-
-
-def get_logo_base64():
-    """Load and encode logo image as base64."""
-    try:
-        with open("media/logo_trans_blue_med.png", "rb") as img_file:
-            return base64.b64encode(img_file.read()).decode()
-    except FileNotFoundError:
-        return ""
+## Global styles and header tweaks
+inject_global_styles()
+inject_header_deploy_hider()
 
 def main():
     # Custom title with logo below
