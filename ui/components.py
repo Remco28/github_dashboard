@@ -207,10 +207,7 @@ def render_settings_help(username: str) -> None:
 
 
 def ensure_section_header_styles() -> None:
-    """Inject section header styles only once per session."""
-    if st.session_state.get('_gd_section_css_loaded'):
-        return
-        
+    """Inject section header styles with :has() hover effects."""
     st.markdown("""
     <style>
       .gd-section { margin: 16px 0 8px; }
@@ -226,12 +223,26 @@ def ensure_section_header_styles() -> None:
         background-size: 100% 8px; 
         transition: background-size .45s ease; 
       }
-      .gd-section-title:hover, .gd-section-title:focus-visible,
-      .gd-section-wrap:hover .gd-section-title,
-      .gd-section-wrap:focus-within .gd-section-title,
+      
+      /* Direct hover/focus on section title */
+      .gd-section-title:hover, .gd-section-title:focus-visible { 
+        background-size: 100% 100%; 
+      }
+      
+      /* CSS :has() rules for section-wide hover - only activate deepest hovered section */
+      [data-testid="stVerticalBlock"]
+        :is(:hover, :focus-within)
+        :has(> [data-testid="stMarkdownContainer"] .gd-section-title)
+        :not(:has([data-testid="stVerticalBlock"] :is(:hover, :focus-within) .gd-section-title))
+        .gd-section-title {
+        background-size: 100% 100%;
+      }
+      
+      /* Fallback for browsers without :has() support */
       .gd-section-title[data-gd-active="true"] { 
         background-size: 100% 100%; 
       }
+      
       .gd-section-title:focus-visible { 
         outline: 2px solid var(--gd-accent, #ffd54f); 
         outline-offset: 2px; 
@@ -245,100 +256,61 @@ def ensure_section_header_styles() -> None:
         .gd-section-title { transition: none; } 
       }
     </style>
+    """, unsafe_allow_html=True)
+    
+    # Progressive enhancement fallback for browsers without :has() support
+    st.markdown("""
     <script>
-    (function(){
-      if (window._gdHeaderEnhancerLoaded) return; 
-      window._gdHeaderEnhancerLoaded = true;
-      
-      const setupHeader = el => {
-        try {
-          // Find container - try multiple selectors in order
-          let block = el.closest('div[data-testid="stVerticalBlock"]') || 
-                      el.closest('div.block-container') || 
-                      el.closest('section.main');
-          
-          // Fallback: walk up parent hierarchy
-          if (!block) {
-            let parent = el.parentElement;
-            for (let i = 0; i < 5 && parent; i++) {
-              if (parent.tagName === 'DIV' && parent.className) {
-                block = parent;
-                break;
-              }
-              parent = parent.parentElement;
+    // Only run fallback if :has() is not supported
+    if (!CSS.supports('selector(:has(*))')) {
+        console.log('CSS :has() not supported, adding fallback listeners');
+        
+        // Delegated event listeners on document body
+        document.body.addEventListener('mouseover', function(e) {
+            const target = e.target.closest('[data-testid="stVerticalBlock"]');
+            if (target) {
+                const title = target.querySelector('.gd-section-title');
+                if (title) {
+                    title.setAttribute('data-gd-active', 'true');
+                }
             }
-          }
-          
-          if (block && !block.classList.contains('gd-section-wrap')) {
-            block.classList.add('gd-section-wrap');
-            
-            // Add mouse listeners for data attribute activation
-            block.addEventListener('mouseenter', () => {
-              el.setAttribute('data-gd-active', 'true');
-            });
-            
-            block.addEventListener('mouseleave', () => {
-              el.removeAttribute('data-gd-active');
-            });
-
-            // Keyboard focus within the section keeps highlight
-            block.addEventListener('focusin', () => {
-              el.setAttribute('data-gd-active', 'true');
-            });
-            block.addEventListener('focusout', (ev) => {
-              // Only remove if focus left the block entirely
-              if (!block.contains(ev.relatedTarget)) {
-                el.removeAttribute('data-gd-active');
-              }
-            });
-          }
-        } catch(_) {}
-      };
-      
-      const headers = () => Array.from(document.querySelectorAll('.gd-section-title'));
-      const allBlocks = () => Array.from(document.querySelectorAll('div[data-testid="stVerticalBlock"]'));
-      const getNearestBlock = (el) => el.closest('div[data-testid="stVerticalBlock"]') || el.closest('div.block-container') || el.closest('section.main');
-      
-      const bindRangeBlocks = () => {
-        const hs = headers();
-        const blocks = allBlocks();
-        if (!hs.length || !blocks.length) return;
+        });
         
-        // Build header info with block index
-        const infos = hs.map((el, idx) => {
-          const block = getNearestBlock(el);
-          const bi = blocks.indexOf(block);
-          el.dataset.gdId = String(idx);
-          return { el, block, bi: bi < 0 ? 0 : bi };
-        }).sort((a,b) => a.bi - b.bi);
+        document.body.addEventListener('mouseout', function(e) {
+            const target = e.target.closest('[data-testid="stVerticalBlock"]');
+            if (target) {
+                const title = target.querySelector('.gd-section-title');
+                if (title) {
+                    title.removeAttribute('data-gd-active');
+                }
+            }
+        });
         
-        for (let i = 0; i < infos.length; i++) {
-          const cur = infos[i];
-          const next = infos[i+1];
-          const end = next ? next.bi : blocks.length;
-          for (let j = cur.bi; j < end; j++) {
-            const b = blocks[j];
-            if (!b) continue;
-            if (!b.classList.contains('gd-section-wrap')) b.classList.add('gd-section-wrap');
-            const key = `gdBoundFor-${cur.el.dataset.gdId}`;
-            if (b.dataset[key]) continue; // skip if already bound for this header
-            b.dataset[key] = '1';
-            b.addEventListener('mouseenter', () => cur.el.setAttribute('data-gd-active', 'true'));
-            b.addEventListener('mouseleave', () => cur.el.removeAttribute('data-gd-active'));
-            b.addEventListener('focusin', () => cur.el.setAttribute('data-gd-active', 'true'));
-            b.addEventListener('focusout', (ev) => { if (!b.contains(ev.relatedTarget)) cur.el.removeAttribute('data-gd-active'); });
-          }
-        }
-      };
-      const mo = new MutationObserver(scan); 
-      mo.observe(document.body, {childList:true, subtree:true});
-      document.addEventListener('DOMContentLoaded', () => { scan(); bindRangeBlocks(); }); 
-      scan();
-      bindRangeBlocks();
-    })();
+        document.body.addEventListener('focusin', function(e) {
+            const target = e.target.closest('[data-testid="stVerticalBlock"]');
+            if (target) {
+                const title = target.querySelector('.gd-section-title');
+                if (title) {
+                    title.setAttribute('data-gd-active', 'true');
+                }
+            }
+        });
+        
+        document.body.addEventListener('focusout', function(e) {
+            const target = e.target.closest('[data-testid="stVerticalBlock"]');
+            if (target) {
+                const title = target.querySelector('.gd-section-title');
+                if (title) {
+                    title.removeAttribute('data-gd-active');
+                }
+            }
+        });
+    } else {
+        console.log('CSS :has() is supported, using CSS-only approach');
+    }
     </script>
     """, unsafe_allow_html=True)
-    st.session_state['_gd_section_css_loaded'] = True
+    
 
 
 def render_section_header(title: str, icon: str | None = None, *, level: str = 'h2', accent: str = 'gold', align: str = 'left') -> None:

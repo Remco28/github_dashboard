@@ -96,6 +96,53 @@ header [data-testid*="Menu" i] { display: none !important; }
     visibility: visible !important;
     opacity: 1 !important;
 }
+
+/* Section container styling */
+.gd-section-container {
+    border: 1px solid #dfe1e5;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.12);
+}
+
+/* Enhanced Languages dropdown styling */
+.stSidebar [data-testid="stMultiSelect"] {
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #f9fafb;
+    padding: 2px;
+}
+.stSidebar [data-testid="stMultiSelect"] > div {
+    background: #f9fafb;
+    border: none;
+}
+.stSidebar [data-testid="stMultiSelect"] input::placeholder {
+    color: #6b7280 !important;
+    opacity: 1;
+}
+
+/* Enhanced Search input styling */
+.stSidebar [data-testid="stTextInput"] {
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #f9fafb;
+    padding: 2px;
+}
+.stSidebar [data-testid="stTextInput"] > div {
+    background: #f9fafb;
+    border: none;
+}
+.stSidebar [data-testid="stTextInput"] input {
+    background: #f9fafb !important;
+    border: none !important;
+}
+.stSidebar [data-testid="stTextInput"] input::placeholder {
+    color: #6b7280 !important;
+    opacity: 1;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -121,6 +168,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
 
 
 def main():
@@ -314,258 +362,272 @@ def main():
         
         # Visualizations Section
         st.markdown("---")
-        render_section_header("Visualizations", level='h2', accent='blue')
+        with st.container():
+            render_section_header("Visualizations", level='h2', accent='blue')
 
-        if filtered_repos:
-            # Refresh button for charts
-            charts_refresh_pressed = st.button("🔄 Refresh Charts", key="charts_refresh", help="Refresh chart data bypassing cache")
-            charts_cache_bust = str(time.time()) if charts_refresh_pressed else None
+            if filtered_repos:
+                # Refresh button for charts
+                charts_refresh_pressed = st.button("🔄 Refresh Charts", key="charts_refresh", help="Refresh chart data bypassing cache")
+                charts_cache_bust = str(time.time()) if charts_refresh_pressed else None
 
-            # Create two columns for charts
-            col1, col2 = st.columns(2)
-
-            with col1:
-                # Language Distribution Pie Chart
-                lang_dist = language_distribution(filtered_repos)
-                render_language_pie(lang_dist)
+                # Create responsive 2x2 chart layout
+                col1, col2 = st.columns(2)
                 
-                # Commits Over Time
-                # Granularity control (default managed in session state); UI placed below the chart
-                default_freq = "Weekly" if activity_days > 120 else "Daily"
-                if "trend_freq" not in st.session_state:
-                    st.session_state["trend_freq"] = default_freq
+                with col1:
+                    # Language Distribution Pie Chart
+                    lang_dist = language_distribution(filtered_repos)
+                    render_language_pie(lang_dist)
+                    
+                    # Commits Over Time
+                    default_freq = "Weekly" if activity_days > 120 else "Daily"
+                    if "trend_freq" not in st.session_state:
+                        st.session_state["trend_freq"] = default_freq
 
-                current_trend_freq = st.session_state.get("trend_freq", default_freq)
-                freq = "D" if current_trend_freq == "Daily" else "W"
-                try:
-                    trend_data = commits_over_time(
-                        filtered_repos,
-                        settings.github_token,
-                        since_iso,
-                        until_iso,
-                        max_repos,
-                        freq=freq,
-                        cache_bust=charts_cache_bust
+                    current_trend_freq = st.session_state.get("trend_freq", default_freq)
+                    freq = "D" if current_trend_freq == "Daily" else "W"
+                    try:
+                        trend_data = commits_over_time(
+                            filtered_repos,
+                            settings.github_token,
+                            since_iso,
+                            until_iso,
+                            max_repos,
+                            freq=freq,
+                            cache_bust=charts_cache_bust
+                        )
+                        render_trend_line(trend_data)
+                    except RateLimitError as e:
+                        render_section_error("Commit Trends", e)
+                    except Exception as e:
+                        render_section_error("Commit Trends", e)
+
+                    # Place the Trend Granularity control below the chart for visual consistency
+                    st.radio(
+                        "Trend Granularity",
+                        ["Daily", "Weekly"],
+                        key="trend_freq",
+                        help="Choose daily or weekly aggregation for the trend chart",
+                        horizontal=True
                     )
-                    render_trend_line(trend_data)
-                except RateLimitError as e:
-                    render_section_error("Commit Trends", e)
-                except Exception as e:
-                    render_section_error("Commit Trends", e)
+                
+                with col2:
+                    # Commits per Repository Bar Chart
+                    try:
+                        commits_data = commits_per_repo(filtered_repos, settings.github_token, since_iso, until_iso, max_repos, cache_bust=charts_cache_bust)
+                        render_commits_bar(commits_data)
+                    except RateLimitError as e:
+                        render_section_error("Commits per Repository", e)
+                    except Exception as e:
+                        render_section_error("Commits per Repository", e)
+                    
+                    # Activity Heatmap
+                    try:
+                        heatmap_data = heatmap_counts(filtered_repos, settings.github_token, since_iso, until_iso, max_repos, cache_bust=charts_cache_bust)
+                        render_heatmap(heatmap_data)
+                    except RateLimitError as e:
+                        render_section_error("Activity Heatmap", e)
+                    except Exception as e:
+                        render_section_error("Activity Heatmap", e)
 
-                # Place the Trend Granularity control below the chart for visual consistency
-                st.radio(
-                    "Trend Granularity",
-                    ["Daily", "Weekly"],
-                    key="trend_freq",
-                    help="Choose daily or weekly aggregation for the trend chart",
-                    horizontal=True
-                )
-
-            with col2:
-                # Commits per Repository Bar Chart
-                try:
-                    commits_data = commits_per_repo(filtered_repos, settings.github_token, since_iso, until_iso, max_repos, cache_bust=charts_cache_bust)
-                    render_commits_bar(commits_data)
-                except RateLimitError as e:
-                    render_section_error("Commits per Repository", e)
-                except Exception as e:
-                    render_section_error("Commits per Repository", e)
-
-                # Activity Heatmap
-                try:
-                    heatmap_data = heatmap_counts(filtered_repos, settings.github_token, since_iso, until_iso, max_repos, cache_bust=charts_cache_bust)
-                    render_heatmap(heatmap_data)
-                except RateLimitError as e:
-                    render_section_error("Activity Heatmap", e)
-                except Exception as e:
-                    render_section_error("Activity Heatmap", e)
-
-        else:
-            st.info("📊 No repositories available for visualization. Try adjusting your filters.")
+            else:
+                st.info("📊 No repositories available for visualization. Try adjusting your filters.")
         
         # NEXT_STEPS Section
         st.markdown("---")
-        render_section_header("Project Tasks", level='h2', accent='gold')
+        with st.container():
+            render_section_header("Project Tasks", level='h2', accent='gold')
 
-        if filtered_repos:
-            # Refresh button for NEXT_STEPS
-            next_steps_refresh_pressed = st.button("🔄 Refresh Tasks", key="next_steps_refresh", help="Refresh NEXT_STEPS data bypassing cache")
-            next_steps_cache_bust = str(time.time()) if next_steps_refresh_pressed else None
+            if filtered_repos:
+                # Refresh button for NEXT_STEPS
+                next_steps_refresh_pressed = st.button("🔄 Refresh Tasks", key="next_steps_refresh", help="Refresh NEXT_STEPS data bypassing cache")
+                next_steps_cache_bust = str(time.time()) if next_steps_refresh_pressed else None
 
-            with st.spinner("Loading NEXT_STEPS data..."):
-                # Sort repos by recent activity (pushed_at descending) and limit processing
-                sorted_repos = sorted(filtered_repos, key=lambda r: r.pushed_at or "", reverse=True)
-                repos_to_process = sorted_repos[:next_steps_limit]
+                with st.spinner("Loading NEXT_STEPS data..."):
+                    # Sort repos by recent activity (pushed_at descending) and limit processing
+                    sorted_repos = sorted(filtered_repos, key=lambda r: r.pushed_at or "", reverse=True)
+                    repos_to_process = sorted_repos[:next_steps_limit]
 
-                # Fetch NEXT_STEPS.md files
-                next_steps_docs = {}
-                missing_files_count = 0
+                    # Fetch NEXT_STEPS.md files
+                    next_steps_docs = {}
+                    missing_files_count = 0
 
-                # Add progress indicator for large processing sets
-                progress_bar = None
-                if len(repos_to_process) > 20:
-                    progress_bar = st.progress(0, text="Processing NEXT_STEPS files...")
-                    st.info(f"🔄 Processing {len(repos_to_process)} repositories for NEXT_STEPS analysis...")
+                    # Add progress indicator for large processing sets
+                    progress_bar = None
+                    if len(repos_to_process) > 20:
+                        progress_bar = st.progress(0, text="Processing NEXT_STEPS files...")
+                        st.info(f"🔄 Processing {len(repos_to_process)} repositories for NEXT_STEPS analysis...")
 
-                for i, repo in enumerate(repos_to_process):
-                    owner, name = repo.full_name.split('/', 1)
-
-                    try:
-                        md_content = cached_fetch_next_steps(owner, name, settings.github_token, next_steps_cache_bust)
-                        if md_content:
-                            doc = parse_next_steps(md_content, repo.full_name)
-                            next_steps_docs[repo.full_name] = doc
-                        else:
-                            missing_files_count += 1
-                    except RateLimitError:
-                        # Skip this repo due to rate limiting, but don't show individual errors
-                        missing_files_count += 1
-                        if len(repos_to_process) > 20:
-                            st.warning("⚠️ Rate limit encountered during NEXT_STEPS processing. Some repositories may be skipped.")
-                    except Exception:
-                        # Skip this repo due to other errors
-                        missing_files_count += 1
-
-                    # Update progress bar
-                    if progress_bar and len(repos_to_process) > 20:
-                        progress = (i + 1) / len(repos_to_process)
-                        progress_bar.progress(progress, text=f"Processing NEXT_STEPS files... ({i + 1}/{len(repos_to_process)})")
-
-                # Complete progress bar
-                if progress_bar:
-                    progress_bar.empty()
-
-                # Extract tasks by repo for aggregate view
-                tasks_by_repo = {
-                    repo_name: doc.tasks 
-                    for repo_name, doc in next_steps_docs.items()
-                }
-                
-                # Render aggregate view
-                render_aggregate(tasks_by_repo)
-                
-                # Repository selector for detailed view
-                if next_steps_docs:
-                    st.markdown("---")
-                    render_section_header("Task List Viewer", level='h3', accent='green')
-                    
-                    selected_repo = render_repo_selector_with_search(
-                        options=list(next_steps_docs.keys()),
-                        key="next_steps_repo_selector",
-                        help_text="Choose a repository to see its NEXT_STEPS.md tasks"
-                    )
-                    
-                    if selected_repo:
-                        render_repo_next_steps(next_steps_docs[selected_repo])
-                
-                # Show guidance for missing files
-                if missing_files_count > 0:
-                    st.markdown("---")
-                    render_missing_next_steps_guidance(missing_files_count)
-                
-                # Processing summary
-                processed_count = len(repos_to_process)
-                total_filtered = len(filtered_repos)
-
-                if processed_count < total_filtered:
-                    st.info(
-                        f"📊 Processed {processed_count} of {total_filtered} repositories. "
-                        f"Repositories are sorted by recent activity and limited to {next_steps_limit} for performance."
-                    )
-        
-        else:
-            st.info("📝 No repositories available for NEXT_STEPS analysis. Try adjusting your filters.")
-        
-        # Motivation Section (Streaks & Badges)
-        st.markdown("---")
-        render_section_header("Motivation", level='h2', accent='purple')
-
-        if filtered_repos:
-            # Refresh button for Motivation
-            motivation_refresh_pressed = st.button("🔄 Refresh Motivation", key="motivation_refresh", help="Refresh motivation data bypassing cache")
-            motivation_cache_bust = str(time.time()) if motivation_refresh_pressed else None
-
-            try:
-                with st.spinner("Computing activity streaks and badges..."):
-                    # Use same bounded repo set as visualizations
-                    repos_to_analyze = filtered_repos[:max_repos]
-
-                    # Fetch commit data for streak computation
-                    commits_by_repo = {}
-                    rate_limited = False
-
-                    for repo in repos_to_analyze:
+                    for i, repo in enumerate(repos_to_process):
                         owner, name = repo.full_name.split('/', 1)
 
                         try:
-                            commits = cached_list_repo_commits(owner, name, settings.github_token, since_iso, until_iso, motivation_cache_bust)
-                            commits_by_repo[repo.full_name] = commits
+                            md_content = cached_fetch_next_steps(owner, name, settings.github_token, next_steps_cache_bust)
+                            if md_content:
+                                doc = parse_next_steps(md_content, repo.full_name)
+                                next_steps_docs[repo.full_name] = doc
+                            else:
+                                missing_files_count += 1
                         except RateLimitError:
-                            rate_limited = True
-                            commits_by_repo[repo.full_name] = []
+                            # Skip this repo due to rate limiting, but don't show individual errors
+                            missing_files_count += 1
+                            if len(repos_to_process) > 20:
+                                st.warning("⚠️ Rate limit encountered during NEXT_STEPS processing. Some repositories may be skipped.")
                         except Exception:
-                            # Skip repos that fail to fetch
-                            commits_by_repo[repo.full_name] = []
+                            # Skip this repo due to other errors
+                            missing_files_count += 1
+
+                        # Update progress bar
+                        if progress_bar and len(repos_to_process) > 20:
+                            progress = (i + 1) / len(repos_to_process)
+                            progress_bar.progress(progress, text=f"Processing NEXT_STEPS files... ({i + 1}/{len(repos_to_process)})")
+
+                    # Complete progress bar
+                    if progress_bar:
+                        progress_bar.empty()
+
+                    # Extract tasks by repo for aggregate view
+                    tasks_by_repo = {
+                        repo_name: doc.tasks 
+                        for repo_name, doc in next_steps_docs.items()
+                    }
                     
-                    # Compute activity dates and streaks
-                    activity_dates = compute_activity_dates(commits_by_repo)
+                    # Render aggregate view
+                    render_aggregate(tasks_by_repo)
                     
-                    # Use cached streak computation with hashable tuple
-                    streaks = cached_compute_streaks(tuple(sorted(activity_dates)), until_iso[:10])
+                    # Store next_steps_docs for use in separate Task List Viewer section
+                    st.session_state['next_steps_docs'] = next_steps_docs
                     
-                    # Calculate total commits and assign badges
-                    total_commits = sum(len(commits) for commits in commits_by_repo.values())
-                    badges = assign_badges(streaks, total_commits)
+                    # Show guidance for missing files
+                    if missing_files_count > 0:
+                        st.markdown("---")
+                        render_missing_next_steps_guidance(missing_files_count)
                     
-                    # Render streak stats
-                    st.subheader("🔥 Activity Streaks")
-                    render_streaks(streaks)
-                    
-                    # Render badges
-                    st.subheader("🏅 Achievements")
-                    render_badges(badges)
-                    
-                    # Show analysis summary
-                    analyzed_count = len(repos_to_analyze)
+                    # Processing summary
+                    processed_count = len(repos_to_process)
                     total_filtered = len(filtered_repos)
-                    
-                    if rate_limited:
-                        st.warning("⏱️ Some repositories were skipped due to rate limiting. Results may be incomplete.")
-                    
-                    if analyzed_count < total_filtered:
+
+                    if processed_count < total_filtered:
                         st.info(
-                            f"📊 Streak analysis based on {analyzed_count} of {total_filtered} repositories "
-                            f"(limited by 'Max Repositories for Charts' setting)."
+                            f"📊 Processed {processed_count} of {total_filtered} repositories. "
+                            f"Repositories are sorted by recent activity and limited to {next_steps_limit} for performance."
                         )
-                    else:
-                        st.info(f"📊 Streak analysis based on all {analyzed_count} repositories.")
-            
-            except RateLimitError as e:
-                render_section_error("Motivation", e)
-            except Exception as e:
-                render_section_error("Motivation", e)
         
-        else:
-            st.info("🏆 No repositories available for motivation analysis. Try adjusting your filters.")
+            else:
+                st.info("📝 No repositories available for NEXT_STEPS analysis. Try adjusting your filters.")
+                # Clear session state if no repos
+                st.session_state['next_steps_docs'] = {}
+        
+        # Task List Viewer Section (separate from Project Tasks)
+        st.markdown("---")
+        with st.container():
+            render_section_header("Task List Viewer", level='h2', accent='green')
+            
+            # Get next_steps_docs from session state
+            next_steps_docs = st.session_state.get('next_steps_docs', {})
+            
+            if next_steps_docs:
+                selected_repo = render_repo_selector_with_search(
+                    options=list(next_steps_docs.keys()),
+                    key="next_steps_repo_selector",
+                    help_text="Choose a repository to see its NEXT_STEPS.md tasks"
+                )
+                
+                if selected_repo:
+                    render_repo_next_steps(next_steps_docs[selected_repo])
+            else:
+                st.info("📋 No task data available. Please load Project Tasks data first.")
+        
+        # Motivation Section (Streaks & Badges)
+        st.markdown("---")
+        with st.container():
+            render_section_header("Motivation", level='h2', accent='purple')
+
+            if filtered_repos:
+                # Refresh button for Motivation
+                motivation_refresh_pressed = st.button("🔄 Refresh Motivation", key="motivation_refresh", help="Refresh motivation data bypassing cache")
+                motivation_cache_bust = str(time.time()) if motivation_refresh_pressed else None
+
+                try:
+                    with st.spinner("Computing activity streaks and badges..."):
+                        # Use same bounded repo set as visualizations
+                        repos_to_analyze = filtered_repos[:max_repos]
+
+                        # Fetch commit data for streak computation
+                        commits_by_repo = {}
+                        rate_limited = False
+
+                        for repo in repos_to_analyze:
+                            owner, name = repo.full_name.split('/', 1)
+
+                            try:
+                                commits = cached_list_repo_commits(owner, name, settings.github_token, since_iso, until_iso, motivation_cache_bust)
+                                commits_by_repo[repo.full_name] = commits
+                            except RateLimitError:
+                                rate_limited = True
+                                commits_by_repo[repo.full_name] = []
+                            except Exception:
+                                # Skip repos that fail to fetch
+                                commits_by_repo[repo.full_name] = []
+                        
+                        # Compute activity dates and streaks
+                        activity_dates = compute_activity_dates(commits_by_repo)
+                        
+                        # Use cached streak computation with hashable tuple
+                        streaks = cached_compute_streaks(tuple(sorted(activity_dates)), until_iso[:10])
+                        
+                        # Calculate total commits and assign badges
+                        total_commits = sum(len(commits) for commits in commits_by_repo.values())
+                        badges = assign_badges(streaks, total_commits)
+                        
+                        # Render streak stats
+                        st.subheader("🔥 Activity Streaks")
+                        render_streaks(streaks)
+                        
+                        # Render badges
+                        st.subheader("🏅 Achievements")
+                        render_badges(badges)
+                        
+                        # Show analysis summary
+                        analyzed_count = len(repos_to_analyze)
+                        total_filtered = len(filtered_repos)
+                        
+                        if rate_limited:
+                            st.warning("⏱️ Some repositories were skipped due to rate limiting. Results may be incomplete.")
+                        
+                        if analyzed_count < total_filtered:
+                            st.info(
+                                f"📊 Streak analysis based on {analyzed_count} of {total_filtered} repositories "
+                                f"(limited by 'Max Repositories for Charts' setting)."
+                            )
+                        else:
+                            st.info(f"📊 Streak analysis based on all {analyzed_count} repositories.")
+                
+                except RateLimitError as e:
+                    render_section_error("Motivation", e)
+                except Exception as e:
+                    render_section_error("Motivation", e)
+        
+            else:
+                st.info("🏆 No repositories available for motivation analysis. Try adjusting your filters.")
         
         # Nudges Section (Stale Repositories)  
         st.markdown("---")
-        render_section_header("Nudges", level='h2', accent='red')
+        with st.container():
+            render_section_header("Nudges", level='h2', accent='red')
         
-        if filtered_repos:
-            try:
-                with st.spinner("Detecting stale repositories..."):
-                    # Detect stale repositories from all filtered repos
-                    stale_repos = detect_stale_repos(filtered_repos, stale_threshold)
-                    
-                    # Render stale repository nudges
-                    render_stale_nudges(stale_repos, limit=5)
-            except Exception as e:
-                render_section_error("Nudges", e)
+            if filtered_repos:
+                try:
+                    with st.spinner("Detecting stale repositories..."):
+                        # Detect stale repositories from all filtered repos
+                        stale_repos = detect_stale_repos(filtered_repos, stale_threshold)
+                        
+                        # Render stale repository nudges
+                        render_stale_nudges(stale_repos, limit=5)
+                except Exception as e:
+                    render_section_error("Nudges", e)
         
-        else:
-            st.info("🚨 No repositories available for nudge analysis. Try adjusting your filters.")
+            else:
+                st.info("🚨 No repositories available for nudge analysis. Try adjusting your filters.")
     
     except RuntimeError as e:
         st.error(f"Configuration Error: {e}")
