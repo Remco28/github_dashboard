@@ -78,5 +78,13 @@ Additional Changes (same session)
   - Risk: None (pure relocation; identical CSS/JS and API).
   - Status: Applied.
 
+Additional Changes (same session)
+- Change: Move repo table and metrics helpers into dedicated modules.
+  - Moved `render_repo_table` to `ui/tables.py`.
+  - Moved `render_stat_cards` and `render_progress_circle` to `ui/metrics.py`.
+  - Updated `app.py` to import from these modules; added transitional re‑exports in `ui/components.py`.
+  - Risk: None (pure relocation; identical UI).
+  - Status: Applied.
+
 Next Proposed Small Change (pending approval)
-- Move repo table and metrics helpers into `ui/tables.py` and `ui/metrics.py` respectively, and add transitional re‑exports to `ui/components.py`. Pure relocation.
+- Decide on deprecating `ui/components.py` after callers are updated, or keep it as a thin façade. If deprecating, switch remaining imports in `app.py` and remove re‑exports in a later session.

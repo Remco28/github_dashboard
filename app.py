@@ -33,10 +33,10 @@ from ui.checklists import (
 )
 from ui.components import (
     render_repo_selector_with_search,
-    render_repo_table,
     render_settings_help,
-    render_stat_cards,
 )
+from ui.tables import render_repo_table
+from ui.metrics import render_stat_cards
 from ui.headers import render_section_header
 from ui.styles import inject_global_styles, inject_header_deploy_hider
 from ui.branding import render_app_title

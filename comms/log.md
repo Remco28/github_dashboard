@@ -144,3 +144,4 @@
 [2025-09-11 00:02:02 UTC] [Architect]: CODE CLEANUP APPLIED: Removed unused import from app.py; normalized import grouping in ui/components.py; updated code_cleanup.md.
 [2025-09-11 00:02:02 UTC] [Architect]: REFACTOR (Phase 1): Split UI helpers — moved style injectors to ui/styles.py, branding/logo + new render_app_title() to ui/branding.py; updated app.py; kept transitional re-exports; no behavior change.
 [2025-09-11 00:17:05 UTC] [Architect]: REFACTOR (Phase 2): Moved section header helpers to ui/headers.py; updated app.py imports; added transitional re-exports in ui/components.py; no behavior change.
+[2025-09-11 00:23:17 UTC] [Architect]: REFACTOR (Phase 3): Moved repo table to ui/tables.py and metrics to ui/metrics.py; updated app.py imports; added transitional re-exports in ui/components.py; no behavior change.

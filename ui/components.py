@@ -1,154 +1,17 @@
-import pandas as pd
-import plotly.graph_objects as go
 import streamlit as st
-
-from models.github_types import RepoSummary
 
 # Transitional re-exports for split modules (safe to remove later)
 from ui.styles import inject_global_styles, inject_header_deploy_hider  # noqa: F401
 from ui.branding import get_logo_base64  # noqa: F401
 from ui.headers import ensure_section_header_styles, render_section_header  # noqa: F401
+from ui.metrics import render_stat_cards, render_progress_circle  # noqa: F401
+from ui.tables import render_repo_table  # noqa: F401
 
 
-def render_stat_cards(repo_summaries: list[RepoSummary]) -> None:
-    """Render metrics cards showing repository statistics."""
-    if not repo_summaries:
-        st.info("No repositories to display.")
-        return
-    
-    # Calculate statistics
-    total_repos = len(repo_summaries)
-    private_count = sum(1 for repo in repo_summaries if repo.private)
-    public_count = total_repos - private_count
-    archived_count = sum(1 for repo in repo_summaries if repo.archived)
-    languages_count = len(set(repo.language for repo in repo_summaries if repo.language))
-    
-    # Display metrics in columns: Total | Private | Public | Archived | Languages
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        st.metric(
-            "Total Repositories",
-            total_repos,
-            help="Total number of repositories"
-        )
-    
-    with col2:
-        st.metric(
-            "Private",
-            private_count,
-            help="Number of private repositories"
-        )
-
-    with col3:
-        st.metric(
-            "Public",
-            public_count,
-            help="Number of public repositories"
-        )
-
-    with col4:
-        st.metric(
-            "Archived",
-            archived_count,
-            help="Number of archived repositories"
-        )
-    
-    with col5:
-        st.metric(
-            "Languages",
-            languages_count,
-            help="Number of different programming languages"
-        )
+# render_stat_cards now lives in ui.metrics (re-exported above)
 
 
-def render_repo_table(repo_summaries: list[RepoSummary]) -> None:
-    """Display a sortable table of repositories."""
-    if not repo_summaries:
-        st.warning("No repositories match the current filters.")
-        st.info("💡 Try adjusting your filters or click 'Clear All Filters' to reset.")
-        return
-    
-    st.subheader(f"Repository Details ({len(repo_summaries)} repositories)")
-    
-    # Convert to DataFrame for display
-    df_data = []
-    for repo in repo_summaries:
-        # Format date for display (just the date part)
-        pushed_date = "N/A"
-        if repo.pushed_at:
-            try:
-                # Handle ISO format with Z
-                date_str = repo.pushed_at.replace('Z', '+00:00') if repo.pushed_at.endswith('Z') else repo.pushed_at
-                from datetime import datetime
-                dt = datetime.fromisoformat(date_str.split('T')[0])  # Just take date part
-                pushed_date = dt.strftime('%Y-%m-%d')
-            except (ValueError, AttributeError):
-                pushed_date = repo.pushed_at[:10] if len(repo.pushed_at) >= 10 else repo.pushed_at
-        
-        df_data.append({
-            "Name": repo.name,
-            "Private": "🔒" if repo.private else "🔓",
-            "Stars": repo.stargazers_count,
-            "Forks": repo.forks_count,
-            "Open Issues": repo.open_issues_count,
-            "Language": repo.language or "N/A",
-            "Last Push": pushed_date,
-            "URL": repo.html_url
-        })
-    
-    df = pd.DataFrame(df_data)
-    
-    # Display interactive dataframe
-    st.dataframe(
-        df,
-        width='stretch',
-        hide_index=True,
-        column_config={
-            "Name": st.column_config.TextColumn(
-                "Name",
-                help="Repository name",
-                width="medium",
-                max_chars=40,
-            ),
-            "URL": st.column_config.LinkColumn(
-                "URL",
-                help="Open repository on GitHub",
-                width="large"
-            ),
-            "Stars": st.column_config.NumberColumn(
-                "Stars",
-                help="Number of stars",
-                width="small"
-            ),
-            "Forks": st.column_config.NumberColumn(
-                "Forks",
-                help="Number of forks",
-                width="small"
-            ),
-            "Open Issues": st.column_config.NumberColumn(
-                "Open Issues",
-                help="Number of open issues",
-                width="small"
-            ),
-            "Private": st.column_config.TextColumn(
-                "Visibility",
-                help="Repository visibility",
-                width="small"
-            ),
-            "Last Push": st.column_config.TextColumn(
-                "Last Push",
-                help="Date of last push",
-                width="small"
-            ),
-            "Language": st.column_config.TextColumn(
-                "Language",
-                help="Primary language",
-                width="small"
-            )
-        },
-        column_order=["Name", "Private", "Stars", "Forks", "Open Issues", "Language", "Last Push", "URL"]
-    )
+# render_repo_table now lives in ui.tables (re-exported above)
 
 
 
@@ -350,52 +213,4 @@ def render_section_header(title: str, icon: str | None = None, *, level: str = '
     )
 
 
-def render_progress_circle(percent: int, *, size: int = 90, thickness: int = 10, color: str = "#64b5f6", key: str | None = None) -> None:
-    """Render a circular progress indicator with centered percentage.
-    
-    Args:
-        percent: Progress percentage (0-100)
-        size: Chart size in pixels
-        thickness: Ring thickness in pixels  
-        color: Color for the progress arc
-    """
-    # Create donut chart with two slices
-    fig = go.Figure(data=[
-        go.Pie(
-            values=[percent, 100 - percent],
-            hole=.7,  # Large hole for donut effect
-            marker=dict(
-                colors=[color, "#f0f0f0"],  # Progress color and background
-                line=dict(width=0)  # No border
-            ),
-            textinfo='none',  # No text on slices
-            hoverinfo='skip',  # No hover tooltips
-            showlegend=False,
-            direction='clockwise',
-            sort=False
-        )
-    ])
-    
-    # Add percentage text in center
-    fig.add_annotation(
-        text=f"{percent}%",
-        x=0.5,
-        y=0.5,
-        font_size=16,
-        font_color="#333333",
-        font_weight="bold",
-        showarrow=False,
-        xref="paper",
-        yref="paper"
-    )
-    
-    # Configure layout for compact size
-    fig.update_layout(
-        width=size,
-        height=size,
-        margin=dict(l=0, r=0, t=0, b=0),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-    )
-    
-    st.plotly_chart(fig, use_container_width=False, config={'displayModeBar': False}, key=key or f"prog-{percent}-{size}-{thickness}")
+# render_progress_circle now lives in ui.metrics (re-exported above)
