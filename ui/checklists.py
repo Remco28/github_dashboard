@@ -1,7 +1,7 @@
 import streamlit as st
 from typing import Dict, List
 from services.next_steps import TaskItem, NextStepsDoc, summarize_tasks
-from ui.components import render_progress_circle
+from ui.metrics import render_progress_circle
 
 
 def render_aggregate(tasks_by_repo: Dict[str, List[TaskItem]]) -> None:

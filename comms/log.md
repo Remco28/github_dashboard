@@ -145,3 +145,5 @@
 [2025-09-11 00:02:02 UTC] [Architect]: REFACTOR (Phase 1): Split UI helpers — moved style injectors to ui/styles.py, branding/logo + new render_app_title() to ui/branding.py; updated app.py; kept transitional re-exports; no behavior change.
 [2025-09-11 00:17:05 UTC] [Architect]: REFACTOR (Phase 2): Moved section header helpers to ui/headers.py; updated app.py imports; added transitional re-exports in ui/components.py; no behavior change.
 [2025-09-11 00:23:17 UTC] [Architect]: REFACTOR (Phase 3): Moved repo table to ui/tables.py and metrics to ui/metrics.py; updated app.py imports; added transitional re-exports in ui/components.py; no behavior change.
+[2025-09-11 00:27:59 UTC] [Architect]: REFACTOR (Phase 4): Deprecated ui/components.py — moved remaining helpers to ui/controls.py, updated imports, removed components.py; behavior unchanged.
+[2025-09-11 00:35:15 UTC] [Architect]: DOCS UPDATED: Reflected UI module split in docs/ARCHITECTURE.md; updated README project structure; no functional changes.

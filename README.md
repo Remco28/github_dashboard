@@ -186,7 +186,16 @@ github_dashboard/
 ├── app.py                 # Main Streamlit application
 ├── config/               # Configuration management
 ├── services/             # Core business logic
-├── ui/                   # User interface components
+├── ui/                   # User interface modules
+│   ├── branding.py       # App title/logo helpers
+│   ├── charts.py         # Plotly chart renderers
+│   ├── checklists.py     # NEXT_STEPS UI
+│   ├── controls.py       # Sidebar controls and settings help
+│   ├── gamification.py   # Streaks, badges, nudges UI
+│   ├── headers.py        # Section header styles and renderer
+│   ├── metrics.py        # Metric cards and progress circle
+│   ├── notifications.py  # Errors, cache info, last-updated
+│   └── styles.py         # Global CSS/JS injectors
 ├── models/               # Data models and types
 ├── docs/                 # Documentation and screenshots
 ├── comms/                # Development workflow management

@@ -21,6 +21,22 @@ This document sketches the current architecture shape so developers understand h
 - Models (`models/github_types.py`) – Dataclasses for typed DTOs (e.g., `RepoSummary`).
 - Settings (`config/settings.py`) – Env‑driven configuration (`GITHUB_TOKEN`, `GITHUB_USERNAME`).
 
+### UI Layer (Streamlit)
+- `ui/styles.py` – One‑time global CSS and small JS injectors (header menu/deploy hider, Plotly card polish, compact DataFrame styles).
+- `ui/headers.py` – Section header styles and `render_section_header()` helper (gradient highlight, :has() progressive enhancement).
+- `ui/branding.py` – App branding helpers: `get_logo_base64()`, `render_app_title()`.
+- `ui/controls.py` – Sidebar/help controls: repo selector with search, settings help panel.
+- `ui/metrics.py` – Summary metric cards and `render_progress_circle()`.
+- `ui/tables.py` – Repository details table rendering.
+- `ui/charts.py` – Plotly chart renderers: language pie, commits bar, trend line, heatmap.
+- `ui/checklists.py` – NEXT_STEPS aggregate view and per‑repo task lists.
+- `ui/gamification.py` – UI for streaks, badges, and stale repo nudges.
+- `ui/notifications.py` – Error/info utilities (cache info, section errors, last‑updated).
+
+Notes:
+- The former catch‑all `ui/components.py` has been decomposed to avoid a “god module”. Each module is cohesive and import cycles are avoided.
+- `app.py` orchestrates these modules and owns high‑level layout; modules do not import from `app.py`.
+
 ### Supporting Services
 - Database – None for MVP; consider SQLite later for optional persistence of custom goals or cached snapshots.
 - Cache – In‑process dictionary; no external cache required.

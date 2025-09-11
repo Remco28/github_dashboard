@@ -31,7 +31,7 @@ from ui.checklists import (
     render_missing_next_steps_guidance,
     render_repo_next_steps,
 )
-from ui.components import (
+from ui.controls import (
     render_repo_selector_with_search,
     render_settings_help,
 )

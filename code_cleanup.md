@@ -87,4 +87,36 @@ Additional Changes (same session)
   - Status: Applied.
 
 Next Proposed Small Change (pending approval)
-- Decide on deprecating `ui/components.py` after callers are updated, or keep it as a thin façade. If deprecating, switch remaining imports in `app.py` and remove re‑exports in a later session.
+- Deprecate `ui/components.py` and remove it after all callers are updated.
+  - Action: Move remaining helpers (`render_repo_selector_with_search`, `render_settings_help`) into a small `ui/controls.py` module; update imports in `app.py` and `ui/checklists.py` as needed; delete `ui/components.py`.
+  - Risk: None (pure relocation; import paths updated).
+  - Status: Applied.
+
+Notes and Watchlist (for future review)
+- CSS/JS injection scope
+  - We rely on CSS :has() with a JS fallback and Streamlit DOM selectors; minor visual drift can occur after Streamlit upgrades.
+  - Keep as-is; maintain a quick “visual smoke” checklist (menu hidden, header highlight, Plotly toolbar placement, DataFrame padding). Later, consolidate all font @imports in `ui/styles.py`.
+- Unpinned dependencies
+  - Current `requirements.txt` is unpinned; upstream changes may affect UI/behavior.
+  - Consider pinning conservative minors (e.g., `streamlit~=1.x`, `plotly~=5.x`) in one commit when stabilizing.
+- Caching and API usage
+  - Sequential commit fetch loops can be slow on large sets; cache may grow without a hard cap.
+  - If performance becomes an issue, consider small bounded concurrency (4–6 workers) and a simple size cap/LRU; not urgent now.
+- Error handling breadth
+  - Some sections catch `Exception` broadly; good UX but can mask debugging.
+  - Keep current UX; optionally add a dev-only toggle to show details in `render_section_error` during debugging.
+- Session state hygiene
+  - Keys like `trend_freq` are fine but un-namespaced; collisions possible as features grow.
+  - For new keys, prefer a light prefix (e.g., `gd_trend_freq`). No need to backfill existing keys.
+- Branding logo fallback
+  - `get_logo_base64()` returns empty string on missing file; can yield a broken image icon.
+  - Later polish: skip the `<img>` if logo is empty in `render_app_title()`.
+- Fonts duplication
+  - Fonts imported in `ui/styles.py` and `ui/headers.py`.
+  - Consolidate @imports in `ui/styles.py` and remove from `ui/headers.py` when convenient.
+- Tests and CI
+  - No tests; Streamlit is hard to e2e test, but a thin safety net helps.
+  - Add an "import smoke" script and optionally a small services-only test. Consider adding `ruff` later for linting.
+- Docs references
+  - Archived specs still reference `ui.components`.
+  - Leave archives; ensure new docs/specs use updated module names.
