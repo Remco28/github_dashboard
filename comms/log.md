@@ -1,7 +1,4 @@
-<!-- Example log -->
 [2025-08-26 09:00] [Gemini]: SETUP: Initialized comms directory structure and logging protocol.
-
-<!-- example log -->
 [2025-09-03 13:07] [Architect]: ROADMAP READY: Added docs/ROADMAP.md with phased milestones.
 [2025-09-03 13:13] [Architect]: SPEC READY: Phases 0–1 in comms/tasks/2025-09-03-foundations-and-data-fetch-mvp.md.
 [2025-09-03 13:18] [Architect]: ARCH INIT: Seeded docs/ARCHITECTURE.md from template with project components and flows.
@@ -121,34 +118,32 @@
 [2025-09-10 10:30:00 UTC] DESIGNER_LEAD: SPEC READY - Fix Section-wide Header Hover Effect. See comms/tasks/2025-09-10-fix-section-hover-effect.md.
 [2025-09-10 22:48:00 UTC] DESIGNER_LEAD: SPEC READY - Section hover via CSS :has() + containers. See comms/tasks/2025-09-10-section-hover-via-has-and-container.md.
 [2025-09-09 23:25:41 UTC] DESIGNER_DEV: IMPL IN_PROGRESS: 2025-09-10-section-hover-via-has-and-container.md
-[2025-09-09 23:32:04 UTC] DESIGNER_DEV: IMPL DONE: Section hover via CSS :has() + containers - replaced manual HTML wrappers with st.container(), implemented CSS :has() rules for section-wide hover on all 5 sections, added progressive enhancement fallback, removed iframe lifting code (after screenshots ready for capture)
-[2025-09-10 22:52:00 UTC] DESIGNER_LEAD: FINDINGS - Streamlit block boundaries prevent custom wrappers from enclosing content; anchor hover to `[data-testid="stVerticalBlock"]` using CSS :has() and group sections with `st.container()`. Iframe/observer scripts no longer needed; minimal JS fallback only if `:has()` unsupported.
-[2025-09-10 23:05:00 UTC] DESIGNER_LEAD: SPEC UPDATE - Limit activation to deepest hovered section using refined :has() selector. See comms/tasks/2025-09-10-section-hover-deepest-only.md.
-[2025-09-10 23:20:00 UTC] DESIGNER_LEAD: RESOLVED - Developer implemented :has() + container grouping and deepest-only selector. Hover now activates exactly one section and meets acceptance across all sections.
-[2025-09-10 23:22:00 UTC] DESIGNER_LEAD: DOCS ADDED - Summarized reusable Streamlit learnings at comms/2025-09-10-streamlit-section-hover-learnings.md.
-[2025-09-10 23:32:00 UTC] DESIGNER_LEAD: DOCS UPDATED - Generalized the learnings doc to cover section-level effects beyond hover (implementation patterns, fallbacks, limitations, and verification). See comms/2025-09-10-streamlit-section-hover-learnings.md.
-[2025-09-09 23:45:22 UTC] DESIGNER_DEV: IMPL IN_PROGRESS: 2025-09-10-section-hover-deepest-only.md
-[2025-09-09 23:45:57 UTC] DESIGNER_DEV: IMPL DONE: Section hover deepest-only refinement - applied refined CSS selector using :not() to prevent multiple headers highlighting simultaneously, ensures only innermost hovered section activates (Task List Viewer vs Project Tasks)
+[2025-09-09 23:32:04 UTC] [DESIGNER_DEV]: IMPL DONE: Section hover via CSS :has() + containers - replaced manual HTML wrappers with st.container(), implemented CSS :has() rules for section-wide hover on all 5 sections, added progressive enhancement fallback, removed iframe lifting code (after screenshots ready for capture)
+[2025-09-10 22:52:00 UTC] [DESIGNER_LEAD]: FINDINGS - Streamlit block boundaries prevent custom wrappers from enclosing content; anchor hover to `[data-testid="stVerticalBlock"]` using CSS :has() and group sections with `st.container()`. Iframe/observer scripts no longer needed; minimal JS fallback only if `:has()` unsupported.
+[2025-09-10 23:05:00 UTC] [DESIGNER_LEAD]: SPEC UPDATE - Limit activation to deepest hovered section using refined :has() selector. See comms/tasks/2025-09-10-section-hover-deepest-only.md.
+[2025-09-10 23:20:00 UTC] [DESIGNER_LEAD]: RESOLVED - Developer implemented :has() + container grouping and deepest-only selector. Hover now activates exactly one section and meets acceptance across all sections.
+[2025-09-10 23:22:00 UTC] [DESIGNER_LEAD]: DOCS ADDED - Summarized reusable Streamlit learnings at comms/2025-09-10-streamlit-section-hover-learnings.md.
+[2025-09-10 23:32:00 UTC] [DESIGNER_LEAD]: DOCS UPDATED - Generalized the learnings doc to cover section-level effects beyond hover (implementation patterns, fallbacks, limitations, and verification). See comms/2025-09-10-streamlit-section-hover-learnings.md.
+[2025-09-09 23:45:22 UTC] [DESIGNER_DEV]: IMPL IN_PROGRESS: 2025-09-10-section-hover-deepest-only.md
+[2025-09-09 23:45:57 UTC] [DESIGNER_DEV]: IMPL DONE: Section hover deepest-only refinement - applied refined CSS selector using :not() to prevent multiple headers highlighting simultaneously, ensures only innermost hovered section activates (Task List Viewer vs Project Tasks)
 
-[2025-09-10 12:30:00 UTC] DESIGNER_DEV: STYLING UPDATES - Applied comprehensive visual enhancements:
-- Changed app title from "GitHub Repository Dashboard" to "GITHUB DASHBOARD" (app.py:20, 175)
-- Implemented Bebas Neue font for section headers with 1.5em size (ui/components.py:218-219)  
-- Added custom title with gradient text effect and logo integration (app.py:184-198)
-- Positioned logo below title with 0.4rem spacing for tight layout
-- Reduced horizontal rule margins from default to 8px 0 4px 0 (ui/components.py:218)
-- Removed unnecessary horizontal rules before "Repository Details" and missing NEXT_STEPS message
-- Logo integration uses base64 encoding for seamless display (media/logo_trans_blue_med.png)
+[2025-09-10 12:30:00 UTC] [DESIGNER_DEV]: STYLING UPDATES - Title/logo layout and Bebas Neue section headers; reduced HR margins; removed redundant rules; base64 logo integration. Files: app.py, ui/components.py.
 
-[2025-09-10 12:35:00 UTC] DESIGNER_DEV: TYPOGRAPHY & LAYOUT - Final styling refinements achieved professional appearance with consistent brand identity. Section headers use distinctive Bebas Neue font while maintaining accessibility. Main title features gradient text effect matching theme colors (#576D82 to #374151) with proper logo placement.
+[2025-09-10 12:35:00 UTC] [DESIGNER_DEV]: TYPOGRAPHY & LAYOUT - Final styling refinements achieved professional appearance with consistent brand identity. Section headers use distinctive Bebas Neue font while maintaining accessibility. Main title features gradient text effect matching theme colors (#576D82 to #374151) with proper logo placement.
 [2025-09-10 16:10:00 UTC] [Architect]: SPEC READY: Sidebar toggle for cache stats at comms/tasks/2025-09-10-sidebar-cache-stats-toggle.md.
 [2025-09-10 16:30:00 UTC] [Architect]: REVIEW PASS: Sidebar cache stats toggle meets spec. Default hidden; sidebar-only rendering gated by 🤓 toggle with tooltip; telemetry preserved. Minor enhancement accepted: metrics + expander layout in sidebar.
 [2025-09-10 16:30:30 UTC] [Architect]: ARCHIVED: Moved spec to comms/tasks/archive/2025-09-10-sidebar-cache-stats-toggle.md.
 [2025-09-10 16:15:00 UTC] [Developer]: IMPL IN_PROGRESS: Implementing sidebar toggle for cache stats with default hidden state and sidebar-only rendering
 [2025-09-10 16:25:00 UTC] [Developer]: IMPL DONE: Completed sidebar toggle for cache stats - added 🤓 toggle control with tooltip, modified render_cache_info to accept location parameter, cache stats now render in sidebar only when enabled (default: hidden)
 [2025-09-10 16:40:00 UTC] [Developer]: ENHANCEMENT DONE: Improved cache statistics display with structured metrics cards, added tooltips for Cache Entries and Hit Rate explanations, removed distracting emojis from metric labels, kept 🔍 for Cache Details expander, cleaner professional appearance
-
 [2025-09-10 17:00:00 UTC] [Developer]: UI POLISH: Added text shadows to statistics metrics - enhanced main title shadow visibility, implemented correct CSS selectors for st.metric components using [data-testid="stMetricLabel"] and [data-testid="stMetricValue"], applied subtle text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) to all repository, task, and streak statistics
-
 [2025-09-10 17:15:00 UTC] [Developer]: TITLE REDESIGN: Updated main title from "GITHUB DASHBOARD" to "DASHBOARD for GitHub" with sophisticated two-part styling - removed gradients and shadows for clean solid color approach (#566C81), implemented hierarchical typography with "DASHBOARD" at 4rem and "for GitHub" at 2rem italic
-
 [2025-09-10 17:30:00 UTC] [Developer]: TYPOGRAPHY ENHANCEMENT: Added Google Fonts integration for reliable font loading, applied JetBrains Mono to "DASHBOARD" for tech aesthetic and Crimson Text to "for GitHub" for elegant serif contrast, fixed vertical alignment using position: relative; top: -1rem for proper centering of subtitle relative to main title
+
+[2025-09-10 19:05:00 UTC] [Architect]: CODE CLEANUP: Normalized imports in app.py; extracted CSS/JS to helpers (inject_global_styles, inject_header_deploy_hider) and moved get_logo_base64 to ui/components.py; added code_cleanup.md to track process and future candidates.
+[2025-09-11 00:02:02 UTC] [Architect]: CODE CLEANUP APPLIED: Removed unused import from app.py; normalized import grouping in ui/components.py; updated code_cleanup.md.
+[2025-09-11 00:02:02 UTC] [Architect]: REFACTOR (Phase 1): Split UI helpers — moved style injectors to ui/styles.py, branding/logo + new render_app_title() to ui/branding.py; updated app.py; kept transitional re-exports; no behavior change.
+[2025-09-11 00:17:05 UTC] [Architect]: REFACTOR (Phase 2): Moved section header helpers to ui/headers.py; updated app.py imports; added transitional re-exports in ui/components.py; no behavior change.
+[2025-09-11 00:23:17 UTC] [Architect]: REFACTOR (Phase 3): Moved repo table to ui/tables.py and metrics to ui/metrics.py; updated app.py imports; added transitional re-exports in ui/components.py; no behavior change.
+[2025-09-11 00:27:59 UTC] [Architect]: REFACTOR (Phase 4): Deprecated ui/components.py — moved remaining helpers to ui/controls.py, updated imports, removed components.py; behavior unchanged.
+[2025-09-11 00:35:15 UTC] [Architect]: DOCS UPDATED: Reflected UI module split in docs/ARCHITECTURE.md; updated README project structure; no functional changes.
