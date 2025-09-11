@@ -141,3 +141,6 @@
 [2025-09-10 17:30:00 UTC] [Developer]: TYPOGRAPHY ENHANCEMENT: Added Google Fonts integration for reliable font loading, applied JetBrains Mono to "DASHBOARD" for tech aesthetic and Crimson Text to "for GitHub" for elegant serif contrast, fixed vertical alignment using position: relative; top: -1rem for proper centering of subtitle relative to main title
 
 [2025-09-10 19:05:00 UTC] [Architect]: CODE CLEANUP: Normalized imports in app.py; extracted CSS/JS to helpers (inject_global_styles, inject_header_deploy_hider) and moved get_logo_base64 to ui/components.py; added code_cleanup.md to track process and future candidates.
+[2025-09-11 00:02:02 UTC] [Architect]: CODE CLEANUP APPLIED: Removed unused import from app.py; normalized import grouping in ui/components.py; updated code_cleanup.md.
+[2025-09-11 00:02:02 UTC] [Architect]: REFACTOR (Phase 1): Split UI helpers — moved style injectors to ui/styles.py, branding/logo + new render_app_title() to ui/branding.py; updated app.py; kept transitional re-exports; no behavior change.
+[2025-09-11 00:17:05 UTC] [Architect]: REFACTOR (Phase 2): Moved section header helpers to ui/headers.py; updated app.py imports; added transitional re-exports in ui/components.py; no behavior change.

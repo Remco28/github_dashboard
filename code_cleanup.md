@@ -47,3 +47,36 @@ Next Proposed Small Change (pending approval)
 
 Verification Notes
 - After each change, run the app and quickly click through: load repos, filters, visualizations, NEXT_STEPS, motivation, nudges. Verify no visual or functional regressions.
+
+Session 2025-09-11
+- Change: Remove unused `base64` import from `app.py`.
+  - Before: `import base64` remained after moving logo encoding to `ui/components.py`.
+  - After: Unused import removed.
+  - Risk: None (no runtime behavior change).
+  - Status: Applied.
+
+- Change: Normalize import grouping in `ui/components.py` (stdlib → third‑party → local; alphabetical within groups).
+  - Before: Third‑party and local imports came before stdlib; order inconsistent.
+  - After: Groups reordered to `base64` (stdlib), then `pandas`, `plotly`, `streamlit` (third‑party), then `models.github_types` (local). No symbols added/removed.
+  - Risk: None (organizational only).
+  - Status: Applied.
+
+Additional Changes (same session)
+- Change: Split UI helpers into focused modules for cohesion.
+  - Moved `inject_global_styles()` and `inject_header_deploy_hider()` from `ui/components.py` to `ui/styles.py`.
+  - Moved `get_logo_base64()` to new `ui/branding.py` and added `render_app_title()`.
+  - Updated `app.py` to import from `ui.styles` and call `ui.branding.render_app_title()`; removed inline title HTML block.
+  - Kept transitional re‑exports in `ui/components.py` to avoid breakage; no behavior change.
+  - Risk: None (pure relocation; identical markup/styles).
+  - Status: Applied.
+
+Additional Changes (same session)
+- Change: Extract section header helpers to dedicated module.
+  - Moved `ensure_section_header_styles()` and `render_section_header()` from `ui/components.py` to `ui/headers.py`.
+  - Updated `app.py` to import `render_section_header` from `ui.headers`.
+  - Added transitional re‑exports in `ui/components.py` for header helpers.
+  - Risk: None (pure relocation; identical CSS/JS and API).
+  - Status: Applied.
+
+Next Proposed Small Change (pending approval)
+- Move repo table and metrics helpers into `ui/tables.py` and `ui/metrics.py` respectively, and add transitional re‑exports to `ui/components.py`. Pure relocation.

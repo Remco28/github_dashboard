@@ -1,4 +1,3 @@
-import base64
 import time
 from datetime import datetime, timedelta, timezone
 
@@ -35,13 +34,12 @@ from ui.checklists import (
 from ui.components import (
     render_repo_selector_with_search,
     render_repo_table,
-    render_section_header,
     render_settings_help,
     render_stat_cards,
-    inject_global_styles,
-    inject_header_deploy_hider,
-    get_logo_base64,
 )
+from ui.headers import render_section_header
+from ui.styles import inject_global_styles, inject_header_deploy_hider
+from ui.branding import render_app_title
 from ui.gamification import render_badges, render_stale_nudges, render_streaks
 from ui.notifications import (
     render_cache_info,
@@ -63,18 +61,7 @@ inject_header_deploy_hider()
 
 def main():
     # Custom title with logo below
-    st.markdown(
-        """
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <h1 style="font-weight: 600; margin: 0 0 0.4rem 0;">
-                <span style="font-size: 4rem; color: #566C81; font-family: 'JetBrains Mono', Consolas, Monaco, 'Lucida Console', monospace;">DASHBOARD</span>
-                <span style="font-size: 2rem; font-style: italic; color: #566C81; margin-left: 0.5rem; font-family: 'Crimson Text', Cambria, 'Times New Roman', serif; position: relative; top: -1rem;">for GitHub</span>
-            </h1>
-            <img src="data:image/png;base64,{logo_b64}" style="height: 4rem; width: 4rem;">
-        </div>
-        """.format(logo_b64=get_logo_base64()),
-        unsafe_allow_html=True
-    )
+    render_app_title()
     
     try:
         # Load configuration
