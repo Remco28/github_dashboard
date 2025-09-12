@@ -13,7 +13,7 @@ def ensure_badge_styles() -> None:
     <style>
       .gd-badges { 
         display: grid; 
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); 
         gap: 12px; 
         margin: 12px 0;
       }
@@ -26,7 +26,9 @@ def ensure_badge_styles() -> None:
         border: 1px solid rgba(0,0,0,0.08); 
         border-radius: 10px; 
         background: linear-gradient(180deg, #fff, #fafafa); 
-        box-shadow: 0 1px 2px rgba(0,0,0,0.04); 
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        aspect-ratio: 1;
+        min-height: 120px;
       }
       .gd-badge-emoji { 
         font-size: 28px; 

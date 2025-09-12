@@ -75,9 +75,11 @@ def render_aggregate(tasks_by_repo: Dict[str, List[TaskItem]]) -> None:
         cols = st.columns(3)
         for i, (repo_name, repo_done, repo_total, pct) in enumerate(repo_items):
             with cols[i % 3]:
-                st.markdown(f"**{repo_name}**")
+                # Truncate long repository names to prevent wrapping
+                display_name = repo_name if len(repo_name) <= 30 else repo_name[:27] + "..."
+                st.markdown(f"<div style='text-align: center; margin-bottom: 8px;'><strong title='{repo_name}'>{display_name}</strong></div>", unsafe_allow_html=True)
                 render_progress_circle(pct, size=72, key=f"repo-progress-{repo_name}")
-                st.caption(f"{repo_done}/{repo_total}")
+                st.markdown(f"<div style='text-align: center; margin-top: 4px; font-size: 12px; color: #666;'>{repo_done}/{repo_total}</div>", unsafe_allow_html=True)
 
 
 def render_repo_next_steps(doc: NextStepsDoc) -> None:
