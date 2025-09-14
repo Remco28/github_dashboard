@@ -9,7 +9,8 @@ This repository’s working checklist for near-term improvements and polish.
 - [x] Remove extra horizontal rules
 - [x] Remove the cache stats bar. Hide it until we reveal it? Make a toggle with description "🤓"
 - [x] Add text shadows to stats text
-- [ ] Make badges narrower
+- [x] Make badges narrower
+- [ ] Remove lingering inline styles from Achievements badges; use `.gd-badge(s)` CSS only
 
 ## Filters & Time Window
 

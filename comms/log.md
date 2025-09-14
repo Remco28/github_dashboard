@@ -134,11 +134,11 @@
 [2025-09-10 16:30:00 UTC] [Architect]: REVIEW PASS: Sidebar cache stats toggle meets spec. Default hidden; sidebar-only rendering gated by 🤓 toggle with tooltip; telemetry preserved. Minor enhancement accepted: metrics + expander layout in sidebar.
 [2025-09-10 16:30:30 UTC] [Architect]: ARCHIVED: Moved spec to comms/tasks/archive/2025-09-10-sidebar-cache-stats-toggle.md.
 [2025-09-10 16:15:00 UTC] [Developer]: IMPL IN_PROGRESS: Implementing sidebar toggle for cache stats with default hidden state and sidebar-only rendering
-[2025-09-10 16:25:00 UTC] [Developer]: IMPL DONE: Completed sidebar toggle for cache stats - added 🤓 toggle control with tooltip, modified render_cache_info to accept location parameter, cache stats now render in sidebar only when enabled (default: hidden)
+[2025-09-10 16:25:00 UTC] [Developer]: IMPL DONE: Cache stats toggle; sidebar-only when enabled.
 [2025-09-10 16:40:00 UTC] [Developer]: ENHANCEMENT DONE: Improved cache statistics display with structured metrics cards, added tooltips for Cache Entries and Hit Rate explanations, removed distracting emojis from metric labels, kept 🔍 for Cache Details expander, cleaner professional appearance
-[2025-09-10 17:00:00 UTC] [Developer]: UI POLISH: Added text shadows to statistics metrics - enhanced main title shadow visibility, implemented correct CSS selectors for st.metric components using [data-testid="stMetricLabel"] and [data-testid="stMetricValue"], applied subtle text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) to all repository, task, and streak statistics
-[2025-09-10 17:15:00 UTC] [Developer]: TITLE REDESIGN: Updated main title from "GITHUB DASHBOARD" to "DASHBOARD for GitHub" with sophisticated two-part styling - removed gradients and shadows for clean solid color approach (#566C81), implemented hierarchical typography with "DASHBOARD" at 4rem and "for GitHub" at 2rem italic
-[2025-09-10 17:30:00 UTC] [Developer]: TYPOGRAPHY ENHANCEMENT: Added Google Fonts integration for reliable font loading, applied JetBrains Mono to "DASHBOARD" for tech aesthetic and Crimson Text to "for GitHub" for elegant serif contrast, fixed vertical alignment using position: relative; top: -1rem for proper centering of subtitle relative to main title
+[2025-09-10 17:00:00 UTC] [Developer]: UI POLISH: Subtle text-shadow on st.metric labels/values.
+[2025-09-10 17:15:00 UTC] [Developer]: TITLE REDESIGN: "DASHBOARD for GitHub" with solid color and improved hierarchy.
+[2025-09-10 17:30:00 UTC] [Developer]: TYPOGRAPHY: Added fonts and aligned subtitle.
 
 [2025-09-10 19:05:00 UTC] [Architect]: CODE CLEANUP: Normalized imports in app.py; extracted CSS/JS to helpers (inject_global_styles, inject_header_deploy_hider) and moved get_logo_base64 to ui/components.py; added code_cleanup.md to track process and future candidates.
 [2025-09-11 00:02:02 UTC] [Architect]: CODE CLEANUP APPLIED: Removed unused import from app.py; normalized import grouping in ui/components.py; updated code_cleanup.md.
@@ -152,3 +152,7 @@
 [2025-09-12 12:15:00 UTC] [Developer]: IMPL IN_PROGRESS: Fixing horizontal alignment issues with circular progress charts in Repository Progress section
 [2025-09-12 12:25:00 UTC] [Developer]: IMPL DONE: Fixed progress chart alignment - added CSS container styles with fixed heights (140px total, 40px for repo name) to ensure horizontal alignment regardless of repository name length, implemented proper flexbox layout with centered alignment and consistent spacing
 [2025-09-12 12:30:00 UTC] [Developer]: REVISION: Simplified progress alignment solution - removed complex CSS containers and session state management, replaced with simple inline styles for center alignment and compact spacing, eliminated excessive vertical space while maintaining chart alignment
+[2025-09-14 21:30:00 UTC] [Developer]: IMPL IN_PROGRESS: Implementing achievements badge spacing fix - replacing st.columns() with CSS auto-fit grid to collapse unused space and improve layout for 1-N badges
+[2025-09-14 21:45:00 UTC] [Developer]: IMPL DONE: Fixed achievements badge spacing - updated CSS to use auto-fit grid (collapses unused tracks), added justify-content: start for left-alignment, replaced st.columns() with single HTML grid block using CSS classes, maintained security with HTML escaping and tooltips
+[2025-09-14 22:05:00 UTC] [Architect]: REVIEW PASS: Achievements spacing fix meets spec; compact 1–N layout.
+[2025-09-14 22:05:01 UTC] [Architect]: ARCHIVED: Moved spec to comms/tasks/archive/2025-09-14-fix-achievements-spacing.md.

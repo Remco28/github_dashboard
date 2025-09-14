@@ -5,76 +5,70 @@ from models.github_types import RepoSummary
 
 
 def ensure_badge_styles() -> None:
-    """Inject badge card styles only once per session."""
-    if st.session_state.get('_gd_badge_css_loaded'):
-        return
-        
+    """Inject badge card styles."""
     st.markdown("""
     <style>
-      .gd-badges { 
-        display: grid; 
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); 
-        gap: 12px; 
-        margin: 12px 0;
+      .gd-badges {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 140px));
+        gap: 12px;
+        margin: 8px 0;
+        justify-content: start;
       }
-      .gd-badge { 
-        display: flex; 
-        flex-direction: column; 
-        align-items: center; 
-        justify-content: center; 
-        padding: 10px 12px; 
-        border: 1px solid rgba(0,0,0,0.08); 
-        border-radius: 10px; 
-        background: linear-gradient(180deg, #fff, #fafafa); 
+      .gd-badge {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 12px;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 10px;
+        background: linear-gradient(180deg, #fff, #fafafa);
         box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         aspect-ratio: 1;
-        min-height: 120px;
+        width: 140px;
       }
-      .gd-badge-emoji { 
-        font-size: 28px; 
-        line-height: 1; 
-        margin-bottom: 6px; 
+      .gd-badge-emoji {
+        font-size: 28px;
+        line-height: 1;
+        margin-bottom: 6px;
       }
-      .gd-badge-label { 
-        font-weight: 600; 
-        text-align: center; 
-        font-size: 13px; 
+      .gd-badge-label {
+        font-weight: 600;
+        text-align: center;
+        font-size: 13px;
       }
     </style>
     """, unsafe_allow_html=True)
-    st.session_state['_gd_badge_css_loaded'] = True
 
 
 def render_badges(badges: List[Badge]) -> None:
     """
     Render badges as styled cards with emoji and tooltips.
-    
+
     Args:
         badges: List of Badge objects to display
     """
     if not badges:
         st.info("🏆 Complete coding activities to earn badges!")
         return
-    
+
     ensure_badge_styles()
-    
-    # Build HTML for badge grid
-    badge_html = '<div class="gd-badges">'
-    
+
+    # Build HTML for badge grid using CSS classes
+    items = []
     for badge in badges:
         # Escape HTML in text fields for security
         safe_label = badge.label.replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;')
-        safe_desc = badge.description.replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;')
-        
-        badge_html += f'''
-        <div class="gd-badge" title="{safe_desc}">
-            <div class="gd-badge-emoji">{badge.emoji}</div>
-            <div class="gd-badge-label">{safe_label}</div>
-        </div>
-        '''
-    
-    badge_html += '</div>'
-    
+
+        items.append(
+            f"<div class='gd-badge' title='{badge.description.replace('<', '&lt;').replace('>', '&gt;').replace('\"', '&quot;')}'>"
+            f"<div class='gd-badge-emoji'>{badge.emoji}</div>"
+            f"<div class='gd-badge-label'>{safe_label}</div>"
+            f"</div>"
+        )
+
+    badge_html = f"<div class='gd-badges'>{''.join(items)}</div>"
     st.markdown(badge_html, unsafe_allow_html=True)
 
 
