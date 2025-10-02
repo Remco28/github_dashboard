@@ -62,7 +62,7 @@ def render_badges(badges: List[Badge]) -> None:
         safe_label = badge.label.replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;')
 
         items.append(
-            f"<div class='gd-badge' title='{badge.description.replace('<', '&lt;').replace('>', '&gt;').replace('\"', '&quot;')}'>"
+            f"<div class='gd-badge' title='{badge.description.replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;')}'>"
             f"<div class='gd-badge-emoji'>{badge.emoji}</div>"
             f"<div class='gd-badge-label'>{safe_label}</div>"
             f"</div>"

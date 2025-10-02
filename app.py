@@ -241,14 +241,21 @@ def main():
         
         # Show filter summary
         if len(filtered_repos) != len(all_repo_summaries):
-            st.info(
-                f"Showing {len(filtered_repos)} of {len(all_repo_summaries)} repositories "
-                f"(filtered by: {', '.join([f for f in [
-                    f'Languages: {", ".join(selected_languages)}' if selected_languages else None,
-                    f'Visibility: {visibility_option}' if visibility_option != 'All' else None,
-                    f'Activity: {activity_days} days' if activity_days != 90 else None,
-                    f'Search: "{search_query}"' if search_query.strip() else None
-                ] if f])})")
+            filters = []
+            if selected_languages:
+                filters.append(f'Languages: {", ".join(selected_languages)}')
+            if visibility_option != 'All':
+                filters.append(f'Visibility: {visibility_option}')
+            if activity_days != 90:
+                filters.append(f'Activity: {activity_days} days')
+            if search_query.strip():
+                filters.append(f'Search: "{search_query}"')
+
+            filter_summary = ""
+            if filters:
+                filter_summary = f"(filtered by: {', '.join(filters)})"
+
+            st.info(f"Showing {len(filtered_repos)} of {len(all_repo_summaries)} repositories {filter_summary}")
         else:
             st.info(f"Showing all {len(all_repo_summaries)} repositories")
         

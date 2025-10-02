@@ -1,0 +1,14 @@
+# Ignore virtual environment
+github_dashboard_env/
+
+# Ignore git repository
+.git/
+
+# Ignore python cache
+__pycache__/
+*.pyc
+
+# Ignore other artifacts
+.devcontainer/
+.gitignore
+*.md
