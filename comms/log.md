@@ -165,3 +165,14 @@
 [2025-10-13 00:25:00 UTC] [Architect]: SPEC READY: Task 1.1 Remove Gamification at comms/tasks/2025-10-13-remove-gamification.md.
 [2025-10-13 00:30:00 UTC] [Architect]: SPEC READY: Task 1.2 Update NEXT_STEPS.md Logic at comms/tasks/2025-10-13-update-next-steps-logic.md.
 [2025-10-13 00:35:00 UTC] [Architect]: SPEC READY: Task 1.3 Add Last Push Date to Main Table at comms/tasks/2025-10-13-add-last-push-column.md.
+[2025-10-13 17:40:38 UTC] [Developer]: IMPL IN_PROGRESS: Setting up pytest foundation per Introduce Basic Testing spec.
+[2025-10-13 17:43:35 UTC] [Developer]: IMPL DONE: Added pytest scaffolding, analytics unit tests, and README testing docs for basic testing foundation.
+[2025-10-13 18:26:54 UTC] [Developer]: IMPL IN_PROGRESS: Removing gamification services, UI, and documentation per Remove Gamification spec.
+[2025-10-13 18:30:22 UTC] [Developer]: IMPL DONE: Removed gamification code and docs, cleaned imports, and updated roadmap/manifest per spec.
+[2025-10-13 18:39:34 UTC] [Developer]: IMPL IN_PROGRESS: Updating NEXT_STEPS fetch logic to support comms/ location with root fallback.
+[2025-10-13 18:43:47 UTC] [Developer]: IMPL DONE: Implemented comms-first NEXT_STEPS lookup, added tests, and refreshed docs/template guidance.
+[2025-10-13 18:48:19 UTC] [Developer]: IMPL IN_PROGRESS: Enhancing Last Push column with relative dates and sortable support.
+[2025-10-13 18:51:27 UTC] [Developer]: IMPL DONE: Added relative Last Push formatting, sortable UTC timestamps, and regression tests per spec.
+
+[2025-10-13 19:00:00 UTC] [Architect]: REVIEW PASS: All Priority 1 tasks meet specs and acceptance criteria. All tests passing (26/26). App runs without errors. Gamification fully removed. NEXT_STEPS logic supports comms/ with root fallback. Last Push column shows relative dates with staleness indicators and sorts correctly.
+[2025-10-13 19:00:01 UTC] [Architect]: ARCHIVED: Moved all Priority 1 specs to comms/tasks/archive/.

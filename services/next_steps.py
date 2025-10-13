@@ -25,24 +25,33 @@ class NextStepsDoc:
 def fetch_next_steps(owner: str, repo: str, token: str) -> str | None:
     """
     Fetch NEXT_STEPS.md file content from a repository.
-    
+
+    Attempts to load comms/NEXT_STEPS.md first and falls back to the root
+    NEXT_STEPS.md for backward compatibility.
+
     Args:
         owner: Repository owner
         repo: Repository name
         token: GitHub token
-        
+
     Returns:
         Markdown content as string if file exists, None if not found
     """
-    file_data = get_file_contents(owner, repo, "NEXT_STEPS.md", token)
+    # Preferred location: comms/NEXT_STEPS.md
+    file_data = get_file_contents(owner, repo, "comms/NEXT_STEPS.md", token)
+
+    # Backward-compatible fallback to root
+    if file_data is None:
+        file_data = get_file_contents(owner, repo, "NEXT_STEPS.md", token)
+
     if file_data is None:
         return None
-    
+
     # Decode base64 content to UTF-8 string
     content_b64 = file_data.get("content", "")
     if not content_b64:
         return None
-    
+
     try:
         content_bytes = base64.b64decode(content_b64)
         return content_bytes.decode("utf-8")

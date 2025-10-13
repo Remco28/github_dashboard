@@ -4,11 +4,11 @@ A comprehensive Streamlit dashboard that provides insights into your GitHub repo
 
 ## ✨ Features
 
-- **Repository Overview**: Browse all your repositories with detailed stats and filtering options
+- **Repository Overview**: Browse all your repositories with detailed stats, relative “Last Push” timings, and filtering options
 - **Interactive Visualizations**: Language distribution, commit trends, activity heatmaps, and per-repository analytics
-- **NEXT_STEPS Integration**: Parse and display NEXT_STEPS.md files from your repositories with task aggregation, configurable processing limits (10-100 repos), and smart prioritization
+- **NEXT_STEPS Integration**: Parse and display NEXT_STEPS.md files from your repositories with task aggregation, configurable processing limits (10-100 repos), and smart prioritization (preferred path `comms/NEXT_STEPS.md`, root fallback supported)
 - **Smart Caching**: Intelligent caching system to respect GitHub API rate limits
-- **Per‑Section Refresh**: Refresh Visualizations, NEXT_STEPS, or Motivation independently without clearing the whole cache
+- **Per‑Section Refresh**: Refresh Visualizations or NEXT_STEPS independently without clearing the whole cache
 - **Cache Telemetry**: Sidebar shows cache hits, misses, hit rate, and top cached functions (no PII)
 - **Settings Help**: Built-in guidance for setup and troubleshooting
 
@@ -108,6 +108,30 @@ The application will:
    - Visual analytics and charts
    - NEXT_STEPS task integration
 
+## Testing
+
+This project uses pytest for automated testing.
+
+### Running Tests
+
+```bash
+# Install test dependencies
+pip install pytest pytest-mock
+
+# Run all tests
+pytest tests/
+
+# Run with verbose output
+pytest tests/ -v
+
+# Run specific test file
+pytest tests/test_analytics.py
+```
+
+### Writing Tests
+
+Tests are located in the `tests/` directory. Use `pytest-mock` for mocking external dependencies like GitHub API calls.
+
 ## 🛠️ Troubleshooting
 
 ### Common Issues
@@ -130,7 +154,7 @@ The application will:
 - Check the "Settings Help" panel in the sidebar for guidance
 
 **Missing NEXT_STEPS Data**
-- NEXT_STEPS.md files must be in the repository root
+- Ensure each repository has `comms/NEXT_STEPS.md` (preferred) or a legacy root-level `NEXT_STEPS.md`
 - Files are processed based on the configurable "NEXT_STEPS Processing Limit" (10-100 repos)
 - Repositories are prioritized by recent activity for processing
 - Use repository filters to focus on specific projects
@@ -163,6 +187,7 @@ The dashboard includes intelligent caching to optimize performance:
 ### NEXT_STEPS Integration
 ![NEXT_STEPS Integration](docs/screenshots/next_steps.png)
 *Task aggregation and repository-specific NEXT_STEPS display*
+The dashboard looks for `comms/NEXT_STEPS.md` first (falling back to the legacy root `NEXT_STEPS.md`). See `docs/NEXT_STEPS.template.md` for a recommended file structure.
 
 ## 📋 Project Structure
 

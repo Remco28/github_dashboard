@@ -37,7 +37,6 @@
 - **Cache Layer:** `services/cache.py`
 - **Analytics:** `services/analytics.py`
 - **NEXT_STEPS Parser:** `services/next_steps.py`
-- **Gamification:** `services/gamification.py`
 - **Error Handling:** `services/errors.py`
 
 ### UI Components
@@ -49,7 +48,6 @@
 - **Metrics/Cards:** `ui/metrics.py`
 - **Controls & Selectors:** `ui/controls.py`
 - **Checklists (NEXT_STEPS):** `ui/checklists.py`
-- **Gamification UI:** `ui/gamification.py`
 - **Notifications & Errors:** `ui/notifications.py`
 
 ### Models & Config

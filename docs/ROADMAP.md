@@ -70,7 +70,7 @@ This roadmap breaks delivery into clear, reviewable stages aligned to PROJECT.md
 ## Phase 9 – Per‑Section Refresh & Cache Telemetry (0.5 day)
 - Status: Completed
 - Goals: Improve responsiveness and observability.
-- Scope: Section‑level refresh buttons (Visualizations, NEXT_STEPS, Motivation), cache‑bust support in cached wrappers, cache telemetry surfaced in sidebar.
+- Scope: Section‑level refresh buttons (Visualizations, NEXT_STEPS), cache‑bust support in cached wrappers, cache telemetry surfaced in sidebar.
 - Deliverables: Updated `services/cache.py` with metrics and `cache_bust`; `app.py` buttons and wiring; `ui/notifications.py` cache panel enhancements; analytics passthrough of `cache_bust`.
 - Acceptance: Section refresh bypasses TTL without clearing entire cache; sidebar shows hits/misses and hit rate; no regressions in rate‑limit handling.
 
@@ -93,7 +93,7 @@ This roadmap breaks delivery into clear, reviewable stages aligned to PROJECT.md
 ## Milestones & Checkpoints
 1) MVP Usable (end Phase 3): repos table + core charts.
 2) Actionable Insights (end Phase 4): NEXT_STEPS checklists and aggregates.
-3) **(Removed)** Motivation Layer
+3) **(Removed)** Motivation Layer (Priority 1 decluttering)
 4) Shareable (end Phase 8): deployed or easy local run with docs.
 5) UX Control & Observability (end Phase 9): per‑section refresh and cache telemetry shipped.
 
@@ -102,7 +102,7 @@ This roadmap breaks delivery into clear, reviewable stages aligned to PROJECT.md
 
 ### **Priority 1: Quick Wins & Decluttering**
 - **Goal:** Immediately improve the focus and utility of the dashboard.
-- **Scope:** Remove Gamification, update `NEXT_STEPS.md` file-fetching logic, add a sortable "Last Push Date" column to the main table, and introduce `pytest`.
+- **Scope:** Remove Gamification (✅ complete), update `NEXT_STEPS.md` file-fetching logic, add a sortable "Last Push Date" column to the main table, and introduce `pytest`.
 
 ### **Priority 2: Major Usability Enhancements**
 - **Goal:** Make the dashboard significantly more interactive and effective.

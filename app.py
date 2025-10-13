@@ -15,14 +15,12 @@ from services.analytics import (
 from services.cache import (
     cache_metrics,
     cache_stats,
-    cached_compute_streaks,
     cached_fetch_next_steps,
     cached_list_repo_commits,
     cached_list_user_repos,
     clear_cache,
 )
 from services.errors import RateLimitError
-from services.gamification import assign_badges, compute_activity_dates, detect_stale_repos
 from services.github_client import to_repo_summary
 from services.next_steps import parse_next_steps
 from ui.charts import render_commits_bar, render_heatmap, render_language_pie, render_trend_line
@@ -40,7 +38,6 @@ from ui.metrics import render_stat_cards
 from ui.headers import render_section_header
 from ui.styles import inject_global_styles, inject_header_deploy_hider
 from ui.branding import render_app_title
-from ui.gamification import render_badges, render_stale_nudges, render_streaks
 from ui.notifications import (
     render_cache_info,
     render_error,
@@ -159,14 +156,6 @@ def main():
             help="Number of repositories to analyze for commit-based charts"
         )
         
-        stale_threshold = st.sidebar.slider(
-            "Stale Threshold (days)",
-            min_value=7,
-            max_value=180,
-            value=30,
-            help="Repositories without pushes for this many days are considered stale"
-        )
-
         # NEXT_STEPS processing controls
         st.sidebar.markdown("---")
         st.sidebar.header("📝 NEXT_STEPS")
@@ -208,7 +197,7 @@ def main():
         if st.sidebar.button("🗑️ Clear All Filters"):
             st.rerun()
         
-        # Calculate time window for commit-based charts (used in Visualizations and Motivation)
+        # Calculate time window for commit-based charts
         # Use timezone-aware UTC per Python 3.12+ deprecation guidance
         until_dt = datetime.now(timezone.utc)
         since_dt = until_dt - timedelta(days=activity_days)
@@ -435,98 +424,6 @@ def main():
             else:
                 st.info("📋 No task data available. Please load Project Tasks data first.")
         
-        # Motivation Section (Streaks & Badges)
-        st.markdown("---")
-        with st.container():
-            render_section_header("Motivation", level='h2', accent='purple')
-
-            if filtered_repos:
-                # Refresh button for Motivation
-                motivation_refresh_pressed = st.button("🔄 Refresh Motivation", key="motivation_refresh", help="Refresh motivation data bypassing cache")
-                motivation_cache_bust = str(time.time()) if motivation_refresh_pressed else None
-
-                try:
-                    with st.spinner("Computing activity streaks and badges..."):
-                        # Use same bounded repo set as visualizations
-                        repos_to_analyze = filtered_repos[:max_repos]
-
-                        # Fetch commit data for streak computation
-                        commits_by_repo = {}
-                        rate_limited = False
-
-                        for repo in repos_to_analyze:
-                            owner, name = repo.full_name.split('/', 1)
-
-                            try:
-                                commits = cached_list_repo_commits(owner, name, settings.github_token, since_iso, until_iso, motivation_cache_bust)
-                                commits_by_repo[repo.full_name] = commits
-                            except RateLimitError:
-                                rate_limited = True
-                                commits_by_repo[repo.full_name] = []
-                            except Exception:
-                                # Skip repos that fail to fetch
-                                commits_by_repo[repo.full_name] = []
-                        
-                        # Compute activity dates and streaks
-                        activity_dates = compute_activity_dates(commits_by_repo)
-                        
-                        # Use cached streak computation with hashable tuple
-                        streaks = cached_compute_streaks(tuple(sorted(activity_dates)), until_iso[:10])
-                        
-                        # Calculate total commits and assign badges
-                        total_commits = sum(len(commits) for commits in commits_by_repo.values())
-                        badges = assign_badges(streaks, total_commits)
-                        
-                        # Render streak stats
-                        st.subheader("🔥 Activity Streaks")
-                        render_streaks(streaks)
-                        
-                        # Render badges
-                        st.subheader("🏅 Achievements")
-                        render_badges(badges)
-                        
-                        # Show analysis summary
-                        analyzed_count = len(repos_to_analyze)
-                        total_filtered = len(filtered_repos)
-                        
-                        if rate_limited:
-                            st.warning("⏱️ Some repositories were skipped due to rate limiting. Results may be incomplete.")
-                        
-                        if analyzed_count < total_filtered:
-                            st.info(
-                                f"📊 Streak analysis based on {analyzed_count} of {total_filtered} repositories "
-                                f"(limited by 'Max Repositories for Charts' setting)."
-                            )
-                        else:
-                            st.info(f"📊 Streak analysis based on all {analyzed_count} repositories.")
-                
-                except RateLimitError as e:
-                    render_section_error("Motivation", e)
-                except Exception as e:
-                    render_section_error("Motivation", e)
-        
-            else:
-                st.info("🏆 No repositories available for motivation analysis. Try adjusting your filters.")
-        
-        # Nudges Section (Stale Repositories)  
-        st.markdown("---")
-        with st.container():
-            render_section_header("Nudges", level='h2', accent='red')
-        
-            if filtered_repos:
-                try:
-                    with st.spinner("Detecting stale repositories..."):
-                        # Detect stale repositories from all filtered repos
-                        stale_repos = detect_stale_repos(filtered_repos, stale_threshold)
-                        
-                        # Render stale repository nudges
-                        render_stale_nudges(stale_repos, limit=5)
-                except Exception as e:
-                    render_section_error("Nudges", e)
-        
-            else:
-                st.info("🚨 No repositories available for nudge analysis. Try adjusting your filters.")
-    
     except RuntimeError as e:
         st.error(f"Configuration Error: {e}")
         st.info(
