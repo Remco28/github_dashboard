@@ -42,13 +42,9 @@ This roadmap breaks delivery into clear, reviewable stages aligned to PROJECT.md
 - Acceptance: For repos with the file, tasks display and aggregate totals compute; missing file shows guidance.
 - Risks: Format drift. Mitigation: tolerant parser + template link.
 
-## Phase 5 – Gamification & Nudges (0.5–1 day)
-- Status: Completed
-- Goals: Motivational badges, streaks, gentle reminders.
-- Scope: Current/longest commit streak, stale repo list, badge logic.
-- Deliverables: `services/gamification.py`; badges in header; nudges block.
-- Acceptance: Badges derive from data consistently; stale repos sorted by inactivity.
-- Risks: Perceived judgment. Mitigation: playful copy, opt‑out toggle.
+## Phase 5 – Gamification & Nudges
+- Status: **Removed**
+- **Note:** This feature was removed to better align the dashboard with its core purpose of providing a fast, focused overview of repository status. The "Nudges" concept for stale repos has been replaced by a sortable "Last Push" column in the main repository table.
 
 ## Phase 6 – Robustness & Performance (0.5 day)
 - Status: Completed
@@ -71,21 +67,6 @@ This roadmap breaks delivery into clear, reviewable stages aligned to PROJECT.md
 - Deliverables: Deploy guide; minimal Dockerfile (optional).
 - Acceptance: App deploys with secret config; renders charts remotely.
 
----
-
-## Cross‑Cutting Details
-- Architecture: Python + Streamlit front end; `services/` for data, `ui/` for presentation, `models/` for types; caching at data layer.
-- Config: `.env` with `GITHUB_TOKEN`, `GITHUB_USERNAME`; never committed.
-- Testing: Manual runs; spot unit tests for parsers and analytics as time allows.
-- Metrics of Success: Time‑to‑first‑chart < 10 min; stale repo surfaced; NEXT_STEPS aggregated; streaks visible; < 2s median interaction latency.
-
-## Milestones & Checkpoints
-1) MVP Usable (end Phase 3): repos table + core charts.
-2) Actionable Insights (end Phase 4): NEXT_STEPS checklists and aggregates.
-3) Motivation Layer (end Phase 5): badges, streaks, stale nudges.
-4) Shareable (end Phase 8): deployed or easy local run with docs.
-5) UX Control & Observability (end Phase 9): per‑section refresh and cache telemetry shipped.
-
 ## Phase 9 – Per‑Section Refresh & Cache Telemetry (0.5 day)
 - Status: Completed
 - Goals: Improve responsiveness and observability.
@@ -101,6 +82,32 @@ This roadmap breaks delivery into clear, reviewable stages aligned to PROJECT.md
 - Acceptance: Configurable limit (10-100 repos), repositories sorted by recent activity, progress indicators for large sets, search/filter in dropdown, rate limit warnings
 - Risks: Rate limit exhaustion mitigated with warnings and caps
 
-## Next Actions (Spec Handoff)
-- Author Phase 0–1 spec in `comms/tasks/` with file/function names and acceptance tests.
-- After implementation, review against acceptance criteria; iterate or proceed to next phase.
+---
+
+## Cross‑Cutting Details
+- Architecture: Python + Streamlit front end; `services/` for data, `ui/` for presentation, `models/` for types; caching at data layer.
+- Config: `.env` with `GITHUB_TOKEN`, `GITHUB_USERNAME`; never committed.
+- **Testing:** Migrating from manual runs to an automated `pytest` suite.
+- **Metrics of Success:** Time‑to‑first‑chart < 10 min; stale repos easily identifiable; NEXT_STEPS aggregated; < 2s median interaction latency.
+
+## Milestones & Checkpoints
+1) MVP Usable (end Phase 3): repos table + core charts.
+2) Actionable Insights (end Phase 4): NEXT_STEPS checklists and aggregates.
+3) **(Removed)** Motivation Layer
+4) Shareable (end Phase 8): deployed or easy local run with docs.
+5) UX Control & Observability (end Phase 9): per‑section refresh and cache telemetry shipped.
+
+## Post-MVP Refinement Plan
+*This section outlines the next priorities, guided by the spec in `comms/tasks/2025-10-13-refocus-and-test.md`.*
+
+### **Priority 1: Quick Wins & Decluttering**
+- **Goal:** Immediately improve the focus and utility of the dashboard.
+- **Scope:** Remove Gamification, update `NEXT_STEPS.md` file-fetching logic, add a sortable "Last Push Date" column to the main table, and introduce `pytest`.
+
+### **Priority 2: Major Usability Enhancements**
+- **Goal:** Make the dashboard significantly more interactive and effective.
+- **Scope:** Implement repository filtering and advanced sorting; add Pull Request data to the main table.
+
+### **Priority 3: Future Feature Spec**
+- **Goal:** Design the next major "killer feature."
+- **Scope:** Plan and design the "What's New Since Last Visit" feature.

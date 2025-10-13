@@ -25,6 +25,7 @@ This repository’s working checklist for near-term improvements and polish.
 ## Rollout
 
 - [x] Add NEXT_STEPS.md files to other repos (Owner task)
+- [ ] Move this file to `comms/` once the app is updated to support the new location.
 
 ---
 

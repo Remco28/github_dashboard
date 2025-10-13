@@ -12,12 +12,6 @@ This document sketches the current architecture shape so developers understand h
   - Phase 9: Adds cache telemetry (hits/misses per function, hit rate) via `cache_metrics()` and supports optional per‑call `cache_bust` in cached wrappers to bypass TTL for section‑level refreshes.
 - Analytics (`services/analytics.py`) – Chart‑ready aggregations (commits by day, repo stats, trends). Implemented in Phase 3.
  - NEXT_STEPS Parser (`services/next_steps.py`) – Fetches and parses `NEXT_STEPS.md` into actionable tasks. Implemented in Phase 4; rendered via `ui/checklists.py` with aggregate and repo detail views.
-- Gamification (`services/gamification.py`) – Computes streaks, badges, and “stale repo” nudges. Implemented in Phase 5 with:
-  - compute_activity_dates → set of active days from commit timestamps (uses committer.date then falls back to author.date)
-  - compute_streaks → current/longest streaks across selected repos/time window; current streak counts consecutive days ending at the most recent active day (does not require a commit “today”)
-  - assign_badges → simple rules (e.g., weekly flame, marathon)
-  - detect_stale_repos → days since push using RepoSummary.pushed_at
-  - UI integration via `ui/gamification.py` (badges, streaks, nudges)
 - Models (`models/github_types.py`) – Dataclasses for typed DTOs (e.g., `RepoSummary`).
 - Settings (`config/settings.py`) – Env‑driven configuration (`GITHUB_TOKEN`, `GITHUB_USERNAME`).
 
@@ -30,7 +24,6 @@ This document sketches the current architecture shape so developers understand h
 - `ui/tables.py` – Repository details table rendering.
 - `ui/charts.py` – Plotly chart renderers: language pie, commits bar, trend line, heatmap.
 - `ui/checklists.py` – NEXT_STEPS aggregate view and per‑repo task lists.
-- `ui/gamification.py` – UI for streaks, badges, and stale repo nudges.
 - `ui/notifications.py` – Error/info utilities (cache info, section errors, last‑updated).
 
 Notes:
@@ -52,7 +45,6 @@ Notes:
   - cache (TTL)
   - analytics (charts)
   - next_steps (parsing)
-  - gamification (streaks/badges/nudges)
   - cache metrics (telemetry)
   - errors (classification)
         |
@@ -83,7 +75,7 @@ select repo → fetch `NEXT_STEPS.md` via GitHub Contents API → parse checklis
 ### Refresh & Rate Limits
 ```
 user clicks Refresh → bypass cache → re‑fetch → update UI
-user clicks section Refresh (Charts/NEXT_STEPS/Motivation) → bypass cache for that section only → update that section
+user clicks section Refresh (Charts/NEXT_STEPS) → bypass cache for that section only → update that section
 ```
 - On 401/403, show friendly errors and suggest checking token/scope; never expose secrets.
 
@@ -91,7 +83,6 @@ user clicks section Refresh (Charts/NEXT_STEPS/Motivation) → bypass cache for 
 
 - RepoSummary – minimal repo view for tables/cards: name, visibility, stars, forks, open issues, last push, language, etc.
 - TaskItem – parsed from `NEXT_STEPS.md` checkboxes with section context and status (implemented in Phase 4).
-- Streak/Badge – derived metrics used by gamification.
 
 ## Authentication & Authorization
 
@@ -118,8 +109,8 @@ user clicks section Refresh (Charts/NEXT_STEPS/Motivation) → bypass cache for 
 
 - Execution: `streamlit run app.py` launches the UI locally.
 - Concurrency: Streamlit reruns scripts on interaction; use memoization/TTL cache for stability and speed.
-- Performance: Keep API calls bounded; aggregate in memory using Pandas only where needed. Gamification reuses the same commit window and repo cap as charts.
-- Per‑Section Refresh (Phase 9): Visualizations, NEXT_STEPS, and Motivation sections expose a small Refresh button. These trigger a one‑off cache bypass using a timestamp `cache_bust` passed to cached wrappers; other sections remain unaffected.
+- Performance: Keep API calls bounded; aggregate in memory using Pandas only where needed.
+- Per-Section Refresh (Phase 9): Visualizations, NEXT_STEPS, and Motivation sections expose a small Refresh button. These trigger a one-off cache bypass using a timestamp `cache_bust` passed to cached wrappers; other sections remain unaffected.
 - Resilience (Phase 6): Auth/Rate‑limit aware errors; unified notifications; cache controls (bypass/clear); consistent last‑updated indicators.
 - Observability: minimal INFO logs (no secrets); show lightweight “last updated” indicators in UI.
   - Phase 9 Cache Telemetry: Sidebar cache panel displays active entries, cached function names, and cache performance (hits/misses, hit rate, top functions) sourced from `services/cache.cache_metrics()`.
@@ -128,9 +119,6 @@ user clicks section Refresh (Charts/NEXT_STEPS/Motivation) → bypass cache for 
 - External timestamps (GitHub API) arrive as ISO strings with `Z`. We parse to timezone‑aware UTC and normalize to safe comparisons.
 - For API windows we build ISO strings with `Z` using `datetime.now(timezone.utc)`, stripping microseconds.
 - For internal day/delta math we compare using naive UTC (timezone removed) to avoid naive/aware subtraction errors.
-
-### Nudges & Filters
-- Nudges evaluate the currently filtered repository set and use the configured stale threshold (days). Adjust filters or threshold to broaden/narrow results.
 
 ## Development Guidelines
 
