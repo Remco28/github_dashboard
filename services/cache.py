@@ -96,14 +96,6 @@ def cached_fetch_next_steps(owner: str, repo: str, token: str, cache_bust: Optio
     return fetch_next_steps(owner, repo, token)
 
 
-# Cached wrapper for compute_streaks with 5-minute TTL
-@ttl_cache(300)  # 5 minutes
-def cached_compute_streaks(activity_dates: tuple[str, ...], until: str):
-    """Cached version of compute_streaks. Requires hashable tuple of dates."""
-    from services.gamification import compute_streaks
-    return compute_streaks(set(activity_dates), until)
-
-
 def clear_cache() -> None:
     """Clear all cached data from the in-memory cache store."""
     global _cache_store

@@ -101,7 +101,7 @@ user clicks section Refresh (Charts/NEXT_STEPS) → bypass cache for that sectio
 - External APIs (GitHub):
   - `GET /user/repos?per_page=100&type=owner&sort=pushed` – list repos (paginated via `Link`).
   - `GET /repos/{owner}/{repo}/languages` – language byte map.
-  - `GET /repos/{owner}/{repo}/contents/NEXT_STEPS.md` – fetch project tasks file (base64 contents).
+- `GET /repos/{owner}/{repo}/contents/comms/NEXT_STEPS.md` (preferred) with fallback to `/NEXT_STEPS.md` – fetch project tasks file (base64 contents).
 - Error handling: raise concise `RuntimeError` on non‑2xx; surface user‑friendly Streamlit messages.
 - Timeouts: ~10s per request; no aggressive retries for MVP.
 
@@ -110,7 +110,7 @@ user clicks section Refresh (Charts/NEXT_STEPS) → bypass cache for that sectio
 - Execution: `streamlit run app.py` launches the UI locally.
 - Concurrency: Streamlit reruns scripts on interaction; use memoization/TTL cache for stability and speed.
 - Performance: Keep API calls bounded; aggregate in memory using Pandas only where needed.
-- Per-Section Refresh (Phase 9): Visualizations, NEXT_STEPS, and Motivation sections expose a small Refresh button. These trigger a one-off cache bypass using a timestamp `cache_bust` passed to cached wrappers; other sections remain unaffected.
+- Per-Section Refresh (Phase 9): Visualizations and NEXT_STEPS sections expose a small Refresh button. These trigger a one-off cache bypass using a timestamp `cache_bust` passed to cached wrappers; other sections remain unaffected.
 - Resilience (Phase 6): Auth/Rate‑limit aware errors; unified notifications; cache controls (bypass/clear); consistent last‑updated indicators.
 - Observability: minimal INFO logs (no secrets); show lightweight “last updated” indicators in UI.
   - Phase 9 Cache Telemetry: Sidebar cache panel displays active entries, cached function names, and cache performance (hits/misses, hit rate, top functions) sourced from `services/cache.cache_metrics()`.
