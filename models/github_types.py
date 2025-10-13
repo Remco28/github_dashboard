@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -15,3 +15,7 @@ class RepoSummary:
     archived: bool
     disabled: bool
     default_branch: str
+    open_pr_count: int = 0
+    needs_review_pr_count: int = 0
+    # Stores canonical PR URLs for hover/tooltip usage when review is needed.
+    needs_review_urls: tuple[str, ...] = field(default_factory=tuple)

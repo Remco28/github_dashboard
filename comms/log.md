@@ -176,3 +176,9 @@
 
 [2025-10-13 19:00:00 UTC] [Architect]: REVIEW PASS: All Priority 1 tasks meet specs and acceptance criteria. All tests passing (26/26). App runs without errors. Gamification fully removed. NEXT_STEPS logic supports comms/ with root fallback. Last Push column shows relative dates with staleness indicators and sorts correctly.
 [2025-10-13 19:00:01 UTC] [Architect]: ARCHIVED: Moved all Priority 1 specs to comms/tasks/archive/.
+[2025-10-13 20:00:00 UTC] [Architect]: SPEC READY: Priority 2 Repo Table Usability Enhancements at comms/tasks/2025-10-13-priority-2-usability-enhancements.md.
+[2025-10-13 20:08:00 UTC] [Architect]: SPEC UPDATED: Simplified Priority 2 table sorting assumptions to rely on Streamlit built-ins; clarified inline filter placement.
+[2025-10-13 19:49:38 UTC] [Developer]: IMPL IN_PROGRESS: Implementing Priority 2 repo table usability enhancements (inline filter, PR metadata, multi-sort).
+[2025-10-13 19:59:00 UTC] [Developer]: IMPL DONE: Delivered Priority 2 repository table usability enhancements with inline filter, PR enrichment, deterministic sorting, and tests.
+[2025-10-13 20:19:59 UTC] [Developer]: IMPL IN_PROGRESS: Revising Priority 2 implementation to align with updated spec (Streamlit-native sorting, inline filter placement).
+[2025-10-13 20:22:42 UTC] [Developer]: IMPL DONE: Updated Priority 2 implementation to remove custom sorting UI, rely on Streamlit sorting, and reposition inline filter per revised spec.

@@ -5,6 +5,7 @@ import streamlit as st
 
 from config.settings import get_settings
 from services.analytics import (
+    attach_pull_request_metadata,
     commits_over_time,
     commits_per_repo,
     filter_repos,
@@ -139,12 +140,6 @@ def main():
             help="Show repositories with activity in the last N days"
         )
         
-        search_query = st.sidebar.text_input(
-            "Search",
-            placeholder="Repository name...",
-            help="Search repositories by name (case-insensitive)"
-        )
-        
         # Visualization controls
         st.sidebar.markdown("---")
         st.sidebar.header("📊 Visualizations")
@@ -196,6 +191,11 @@ def main():
         # Clear filters button
         if st.sidebar.button("🗑️ Clear All Filters"):
             st.rerun()
+
+        # Ensure inline filter has a default session value ready for downstream calculations.
+        if "table_filter_query" not in st.session_state:
+            st.session_state["table_filter_query"] = ""
+        table_filter_query_value = st.session_state.get("table_filter_query", "")
         
         # Calculate time window for commit-based charts
         # Use timezone-aware UTC per Python 3.12+ deprecation guidance
@@ -211,14 +211,34 @@ def main():
         elif visibility_option == "Public":
             include_private = False
 
+        filter_query_clean = table_filter_query_value.strip() if table_filter_query_value else ""
         filtered_repos = filter_repos(
             all_repo_summaries,
             languages=set(selected_languages) if selected_languages else None,
             include_private=include_private,
             activity_days=activity_days,
-            query=search_query.strip() if search_query.strip() else None
+            query=filter_query_clean or None
         )
-        
+
+        pr_enrichment_error: Exception | None = None
+        try:
+            attach_pull_request_metadata(
+                filtered_repos,
+                settings.github_token,
+                settings.github_username,
+                cache_bust=cache_bust,
+            )
+        except RateLimitError as exc:
+            pr_enrichment_error = exc
+        except Exception as exc:
+            pr_enrichment_error = exc
+
+        if pr_enrichment_error:
+            for repo in filtered_repos:
+                repo.open_pr_count = 0
+                repo.needs_review_pr_count = 0
+                repo.needs_review_urls = ()
+
         # Display summary statistics using components
         render_stat_cards(filtered_repos)
         
@@ -226,7 +246,24 @@ def main():
         render_last_updated(repo_fetch_time, "Repository data")
         
         # Display repositories table using components
-        render_repo_table(filtered_repos)
+        if pr_enrichment_error:
+            render_section_error("Pull Requests", pr_enrichment_error)
+
+        table_section = st.container()
+        with table_section:
+            st.text_input(
+                "Filter repositories by name",
+                placeholder="Type part of a repository name…",
+                key="table_filter_query",
+                help="Filter applies to the table plus charts and NEXT_STEPS sections.",
+            )
+
+            filter_query_display = st.session_state.get("table_filter_query", "").strip()
+
+            render_repo_table(
+                filtered_repos,
+                filter_query=filter_query_display or None,
+            )
         
         # Show filter summary
         if len(filtered_repos) != len(all_repo_summaries):
@@ -237,8 +274,8 @@ def main():
                 filters.append(f'Visibility: {visibility_option}')
             if activity_days != 90:
                 filters.append(f'Activity: {activity_days} days')
-            if search_query.strip():
-                filters.append(f'Search: "{search_query}"')
+            if filter_query_display:
+                filters.append(f'Name filter: "{filter_query_display}"')
 
             filter_summary = ""
             if filters:

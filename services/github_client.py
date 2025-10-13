@@ -171,6 +171,49 @@ def list_repo_commits(owner: str, repo: str, token: str, since: str, until: str,
     return commits
 
 
+def list_repo_pull_requests(owner: str, repo: str, token: str, state: str = "open") -> List[Dict]:
+    """
+    Retrieve pull requests for a repository with pagination support.
+
+    Args:
+        owner: Repository owner
+        repo: Repository name
+        token: GitHub token
+        state: Pull request state filter (defaults to "open")
+
+    Returns:
+        List of pull request dictionaries ordered by most recently updated first.
+    """
+    url = f"{GITHUB_API}/repos/{owner}/{repo}/pulls"
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github+json"
+    }
+    params = {
+        "state": state,
+        "per_page": 100,
+        "sort": "updated",
+        "direction": "desc"
+    }
+
+    pull_requests: List[Dict] = []
+
+    while url:
+        try:
+            response = _request_with_retry("GET", url, headers, params)
+        except NotFoundError:
+            # Repository access revoked or PRs disabled.
+            return []
+
+        pull_requests.extend(response.json())
+
+        # GitHub provides pagination via the Link header.
+        url = parse_next_link(response.headers.get("Link"))
+        params = None  # Subsequent requests contain query params in URL.
+
+    return pull_requests
+
+
 def get_file_contents(owner: str, repo: str, path: str, token: str) -> dict | None:
     """
     Get file contents from a repository via the GitHub Contents API.

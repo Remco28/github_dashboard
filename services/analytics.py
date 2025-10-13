@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import List, Set, Optional, Tuple, Dict
 from collections import defaultdict
 from models.github_types import RepoSummary
+from services.errors import NotFoundError, RateLimitError
 
 
 def filter_repos(
@@ -73,6 +74,75 @@ def filter_repos(
         filtered_repos.append(repo)
     
     return filtered_repos
+
+
+def attach_pull_request_metadata(
+    repos: List[RepoSummary],
+    token: str,
+    username: str,
+    cache_bust: Optional[str] = None,
+) -> List[RepoSummary]:
+    """
+    Populate RepoSummary objects with pull request counts and review-needed links.
+    """
+    if not repos:
+        return repos
+
+    from services.cache import cached_list_repo_pull_requests
+
+    normalized_username = username.lower()
+
+    for repo in repos:
+        # Reset counts each time to avoid stale data across refreshes.
+        repo.open_pr_count = 0
+        repo.needs_review_pr_count = 0
+        repo.needs_review_urls = ()
+
+        if not repo.full_name or "/" not in repo.full_name:
+            continue
+
+        owner, repo_name = repo.full_name.split("/", 1)
+
+        try:
+            pull_requests = cached_list_repo_pull_requests(
+                owner,
+                repo_name,
+                token,
+                state="open",
+                cache_bust=cache_bust,
+            )
+        except NotFoundError:
+            # Repository access revoked or PRs are unavailable; leave defaults.
+            continue
+
+        # Propagate rate limit errors so the caller can surface a warning.
+        except RateLimitError:
+            raise
+
+        actionable_prs = [pr for pr in pull_requests if not pr.get("draft")]
+        repo.open_pr_count = len(actionable_prs)
+
+        review_urls: List[str] = []
+        needs_review_count = 0
+
+        for pr in actionable_prs:
+            requested_reviewers = pr.get("requested_reviewers") or []
+            username_matches_reviewer = any(
+                (reviewer.get("login") or "").lower() == normalized_username
+                for reviewer in requested_reviewers
+            )
+
+            # Teams are currently ignored until mapping logic is defined.
+            if username_matches_reviewer:
+                needs_review_count += 1
+                pr_url = pr.get("html_url")
+                if pr_url:
+                    review_urls.append(pr_url)
+
+        repo.needs_review_pr_count = needs_review_count
+        repo.needs_review_urls = tuple(review_urls)
+
+    return repos
 
 
 def languages_set(repos: List[RepoSummary]) -> List[str]:
