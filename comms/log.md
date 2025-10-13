@@ -156,3 +156,12 @@
 [2025-09-14 21:45:00 UTC] [Developer]: IMPL DONE: Fixed achievements badge spacing - updated CSS to use auto-fit grid (collapses unused tracks), added justify-content: start for left-alignment, replaced st.columns() with single HTML grid block using CSS classes, maintained security with HTML escaping and tooltips
 [2025-09-14 22:05:00 UTC] [Architect]: REVIEW PASS: Achievements spacing fix meets spec; compact 1–N layout.
 [2025-09-14 22:05:01 UTC] [Architect]: ARCHIVED: Moved spec to comms/tasks/archive/2025-09-14-fix-achievements-spacing.md.
+
+[2025-10-13 00:00:00 UTC] [Architect]: REFOCUS PLAN: Created refocus-and-test.md spec for Priority 1 decluttering and enhancements.
+[2025-10-13 00:05:00 UTC] [Architect]: DOCS UPDATED: Updated comms/NEXT_STEPS.md to align with refocus plan priorities.
+[2025-10-13 00:10:00 UTC] [Architect]: MANIFEST CREATED: Added project-manifest.md as AI agent entry point for project navigation.
+[2025-10-13 00:15:00 UTC] [Architect]: LESSONS LEARNED: Created docs/lessons-learned/streamlit-section-hover.md documenting CSS :has() solution.
+[2025-10-13 00:20:00 UTC] [Architect]: SPEC READY: Task 1.4 Introduce Basic Testing at comms/tasks/2025-10-13-introduce-basic-testing.md.
+[2025-10-13 00:25:00 UTC] [Architect]: SPEC READY: Task 1.1 Remove Gamification at comms/tasks/2025-10-13-remove-gamification.md.
+[2025-10-13 00:30:00 UTC] [Architect]: SPEC READY: Task 1.2 Update NEXT_STEPS.md Logic at comms/tasks/2025-10-13-update-next-steps-logic.md.
+[2025-10-13 00:35:00 UTC] [Architect]: SPEC READY: Task 1.3 Add Last Push Date to Main Table at comms/tasks/2025-10-13-add-last-push-column.md.
