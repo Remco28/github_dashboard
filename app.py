@@ -18,6 +18,7 @@ from services.cache import (
     cache_stats,
     cached_fetch_next_steps,
     cached_list_repo_commits,
+    cached_list_user_events,
     cached_list_user_repos,
     clear_cache,
 )
@@ -37,6 +38,7 @@ from ui.controls import (
 from ui.tables import render_repo_table
 from ui.metrics import render_stat_cards
 from ui.headers import render_section_header
+from ui.activity_feed import render_activity_feed
 from ui.styles import inject_global_styles, inject_header_deploy_hider
 from ui.branding import render_app_title
 from ui.notifications import (
@@ -357,6 +359,31 @@ def main():
             else:
                 st.info("📊 No repositories available for visualization. Try adjusting your filters.")
         
+        # Recent Activity Section
+        st.markdown("---")
+        with st.container():
+            render_section_header("Recent Activity", level='h2', accent='green')
+
+            activity_error: Exception | None = None
+            recent_events: list[dict] = []
+
+            with st.spinner("Loading recent activity..."):
+                try:
+                    recent_events = cached_list_user_events(
+                        settings.github_username,
+                        settings.github_token,
+                        cache_bust
+                    )
+                except RateLimitError as exc:
+                    activity_error = exc
+                except Exception as exc:
+                    activity_error = exc
+
+            if activity_error:
+                render_section_error("Recent Activity", activity_error)
+            else:
+                render_activity_feed(recent_events, current_username=settings.github_username)
+
         # NEXT_STEPS Section
         st.markdown("---")
         with st.container():

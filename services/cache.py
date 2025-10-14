@@ -88,6 +88,14 @@ def cached_list_repo_pull_requests(owner: str, repo: str, token: str, state: str
     return list_repo_pull_requests(owner, repo, token, state=state)
 
 
+# Cached wrapper for list_user_events with 1-minute TTL
+@ttl_cache(60)  # 1 minute
+def cached_list_user_events(username: str, token: str, cache_bust: Optional[str] = None) -> list:
+    """Cached version of list_user_events."""
+    from services.github_client import list_user_events
+    return list_user_events(username, token)
+
+
 # Cached wrapper for get_file_contents with 5-minute TTL
 @ttl_cache(300)  # 5 minutes
 def cached_get_file_contents(owner: str, repo: str, path: str, token: str) -> dict | None:

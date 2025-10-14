@@ -182,3 +182,5 @@
 [2025-10-13 19:59:00 UTC] [Developer]: IMPL DONE: Delivered Priority 2 repository table usability enhancements with inline filter, PR enrichment, deterministic sorting, and tests.
 [2025-10-13 20:19:59 UTC] [Developer]: IMPL IN_PROGRESS: Revising Priority 2 implementation to align with updated spec (Streamlit-native sorting, inline filter placement).
 [2025-10-13 20:22:42 UTC] [Developer]: IMPL DONE: Updated Priority 2 implementation to remove custom sorting UI, rely on Streamlit sorting, and reposition inline filter per revised spec.
+[2025-10-14 18:05:00 UTC] [Developer]: IMPL DONE: Implemented Recent Activity feed per 2025-10-14 spec — added GitHub events fetcher, activity_feed UI module, console-inspired styling tweaks, and integrated the section above Project Tasks.
+[2025-10-14 18:06:00 UTC] [Product Owner]: APPROVED: Recent Activity feed meets spec, styling finalized after tweaks (console font, color palette, link treatment).
