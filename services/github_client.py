@@ -214,6 +214,36 @@ def list_repo_pull_requests(owner: str, repo: str, token: str, state: str = "ope
     return pull_requests
 
 
+def list_user_events(username: str, token: str, per_page: int = 30) -> List[Dict]:
+    """
+    Fetch the most recent activity events for a user.
+
+    Args:
+        username: GitHub username whose events will be fetched.
+        token: Personal access token to authenticate the request.
+        per_page: Number of events to request from the API (max 100).
+
+    Returns:
+        List of event dictionaries sorted with the most recent first.
+    """
+    url = f"{GITHUB_API}/users/{username}/events"
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github+json"
+    }
+    params = {"per_page": per_page}
+
+    response = _request_with_retry("GET", url, headers, params)
+    events: List[Dict] = response.json()
+
+    # API returns newest first, but ensure the ordering explicitly.
+    return sorted(
+        events,
+        key=lambda event: event.get("created_at", ""),
+        reverse=True
+    )
+
+
 def get_file_contents(owner: str, repo: str, path: str, token: str) -> dict | None:
     """
     Get file contents from a repository via the GitHub Contents API.
