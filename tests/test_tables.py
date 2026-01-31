@@ -29,7 +29,7 @@ def test_format_relative_date_hours_days_weeks_months_years():
 def test_format_relative_date_marks_stale():
     now = datetime.now(timezone.utc)
     label = tables.format_relative_date(now - timedelta(days=200))
-    assert "⚠️" in label
+    assert "(stale)" in label
 
 
 def test_format_relative_date_handles_strings():

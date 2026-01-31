@@ -2,11 +2,10 @@ from datetime import datetime, timedelta, timezone
 from typing import List, Set, Optional, Tuple, Dict
 from collections import defaultdict
 from models.github_types import RepoSummary
-from services.errors import NotFoundError, RateLimitError
 
 
 def filter_repos(
-    repos: List[RepoSummary], 
+    repos: List[RepoSummary],
     languages: Optional[Set[str]] = None,
     include_private: Optional[bool] = None,
     activity_days: Optional[int] = None,
@@ -14,32 +13,32 @@ def filter_repos(
 ) -> List[RepoSummary]:
     """
     Apply filters to repository list.
-    
+
     Args:
         repos: List of repository summaries to filter
         languages: Set of languages to include (None = include all)
         include_private: True for private only, False for public only, None for all
         activity_days: Number of days for recent activity filter (None = no filter)
         query: Search query for repository name (case-insensitive, None = no filter)
-    
+
     Returns:
         Filtered list of repository summaries
     """
     filtered_repos = []
     # Use naive UTC for consistent comparisons
     now = datetime.now(timezone.utc).replace(tzinfo=None)
-    
+
     for repo in repos:
         # Language filter
         if languages is not None:
             if not repo.language or repo.language not in languages:
                 continue
-        
-        # Visibility filter  
+
+        # Visibility filter
         if include_private is not None:
             if repo.private != include_private:
                 continue
-        
+
         # Activity filter
         if activity_days is not None and repo.pushed_at:
             try:
@@ -47,139 +46,70 @@ def filter_repos(
                 date_str = repo.pushed_at
                 if date_str.endswith('Z'):
                     date_str = date_str[:-1] + '+00:00'
-                
+
                 # Parse the datetime
                 if 'T' in date_str:
                     repo_date = datetime.fromisoformat(date_str)
                 else:
                     # If it's just a date
                     repo_date = datetime.fromisoformat(date_str + 'T00:00:00+00:00')
-                
+
                 # Remove timezone info for comparison
                 if repo_date.tzinfo:
                     repo_date = repo_date.replace(tzinfo=None)
-                
+
                 days_old = (now - repo_date).days
                 if days_old > activity_days:
                     continue
             except (ValueError, AttributeError):
                 # If we can't parse the date, skip this filter
                 pass
-        
+
         # Name search filter
         if query is not None:
             if query.lower() not in repo.name.lower():
                 continue
-        
+
         filtered_repos.append(repo)
-    
+
     return filtered_repos
-
-
-def attach_pull_request_metadata(
-    repos: List[RepoSummary],
-    token: str,
-    username: str,
-    cache_bust: Optional[str] = None,
-) -> List[RepoSummary]:
-    """
-    Populate RepoSummary objects with pull request counts and review-needed links.
-    """
-    if not repos:
-        return repos
-
-    from services.cache import cached_list_repo_pull_requests
-
-    normalized_username = username.lower()
-
-    for repo in repos:
-        # Reset counts each time to avoid stale data across refreshes.
-        repo.open_pr_count = 0
-        repo.needs_review_pr_count = 0
-        repo.needs_review_urls = ()
-
-        if not repo.full_name or "/" not in repo.full_name:
-            continue
-
-        owner, repo_name = repo.full_name.split("/", 1)
-
-        try:
-            pull_requests = cached_list_repo_pull_requests(
-                owner,
-                repo_name,
-                token,
-                state="open",
-                cache_bust=cache_bust,
-            )
-        except NotFoundError:
-            # Repository access revoked or PRs are unavailable; leave defaults.
-            continue
-
-        # Propagate rate limit errors so the caller can surface a warning.
-        except RateLimitError:
-            raise
-
-        actionable_prs = [pr for pr in pull_requests if not pr.get("draft")]
-        repo.open_pr_count = len(actionable_prs)
-
-        review_urls: List[str] = []
-        needs_review_count = 0
-
-        for pr in actionable_prs:
-            requested_reviewers = pr.get("requested_reviewers") or []
-            username_matches_reviewer = any(
-                (reviewer.get("login") or "").lower() == normalized_username
-                for reviewer in requested_reviewers
-            )
-
-            # Teams are currently ignored until mapping logic is defined.
-            if username_matches_reviewer:
-                needs_review_count += 1
-                pr_url = pr.get("html_url")
-                if pr_url:
-                    review_urls.append(pr_url)
-
-        repo.needs_review_pr_count = needs_review_count
-        repo.needs_review_urls = tuple(review_urls)
-
-    return repos
 
 
 def languages_set(repos: List[RepoSummary]) -> List[str]:
     """
     Extract unique programming languages from repositories.
-    
+
     Args:
         repos: List of repository summaries
-        
+
     Returns:
         Sorted list of unique languages (excludes None/empty)
     """
     languages = set()
-    
+
     for repo in repos:
         if repo.language:
             languages.add(repo.language)
-    
+
     return sorted(list(languages))
 
 
 def language_distribution(repos: List[RepoSummary]) -> Dict[str, int]:
     """
     Count repositories by programming language for pie chart.
-    
+
     Args:
         repos: List of repository summaries
-        
+
     Returns:
         Dictionary mapping language names to repository counts (excludes None/empty)
     """
     language_counts = defaultdict(int)
-    
+
     for repo in repos:
         if repo.language:
             language_counts[repo.language] += 1
-    
+
     return dict(language_counts)
 
 

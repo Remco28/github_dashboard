@@ -184,3 +184,11 @@
 [2025-10-13 20:22:42 UTC] [Developer]: IMPL DONE: Updated Priority 2 implementation to remove custom sorting UI, rely on Streamlit sorting, and reposition inline filter per revised spec.
 [2025-10-14 18:05:00 UTC] [Developer]: IMPL DONE: Implemented Recent Activity feed per 2025-10-14 spec — added GitHub events fetcher, activity_feed UI module, console-inspired styling tweaks, and integrated the section above Project Tasks.
 [2025-10-14 18:06:00 UTC] [Product Owner]: APPROVED: Recent Activity feed meets spec, styling finalized after tweaks (console font, color palette, link treatment).
+[2026-01-31 12:00:00 UTC] [ARCHITECT]: SPEC READY - Feature Refocus + FEATURES.md Migration (comms/tasks/2026-01-31-feature-refocus-features.md).
+[2026-01-31 12:00:00 UTC] [ARCHITECT]: SPEC READY - Deployment Docs Coolify Only (comms/tasks/2026-01-31-deployment-coolify-only.md).
+[2026-01-31 12:10:00 UTC] [Developer]: IMPL IN_PROGRESS: Updating deployment docs to Coolify-only, removing Streamlit Cloud references.
+[2026-01-31 12:15:00 UTC] [Developer]: IMPL DONE: Deployment docs now Coolify-only. Removed Streamlit Cloud section from DEPLOYMENT.md, updated README deploy section, updated ROADMAP Phase 8 scope.
+[2026-01-31 12:30:00 UTC] [Developer]: IMPL IN_PROGRESS: Feature Refocus + FEATURES.md Migration - removing Recent Activity, PR columns, renaming NEXT_STEPS to FEATURES.
+[2026-01-31 13:00:00 UTC] [Developer]: IMPL DONE: Feature Refocus + FEATURES.md Migration complete. Removed Recent Activity section and ui/activity_feed.py. Removed PR columns (Open PRs, Needs Review, Stars, Forks) from table and all supporting code. Replaced NEXT_STEPS with FEATURES (new services/features.py, updated cache, UI sections renamed to "Features" and "Feature Details"). Trend Granularity defaults to Weekly. Tests updated. Docs updated.
+[2026-01-31 14:00:00 UTC] [ARCHITECT]: REVIEW PASS: Feature refocus + FEATURES migration meets spec; tests passing. Archived specs 2026-01-31-feature-refocus-features.md and 2026-01-31-deployment-coolify-only.md.
+[2026-01-31 13:15:00 UTC] [Developer]: REVISION: Fixed architect findings - updated docs/ROADMAP.md to reflect FEATURES model (removed NEXT_STEPS/PR references, added Phase 11), deleted comms/NEXT_STEPS.md (comms/FEATURES.md already exists). All 29 tests passing.

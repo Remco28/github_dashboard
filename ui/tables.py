@@ -100,7 +100,7 @@ def format_relative_date(value: Optional[datetime | str]) -> str:
         label = f"{years} year{'s' if years > 1 else ''} ago"
 
     if days >= 180:
-        label += " ⚠️"
+        label += " (stale)"
 
     return label
 
@@ -113,7 +113,7 @@ def render_repo_table(
     """Display a sortable table of repositories."""
     if not repo_summaries:
         st.warning("No repositories match the current filters.")
-        st.info("💡 Try adjusting your filters or click 'Clear All Filters' to reset.")
+        st.info("Try adjusting your filters or click 'Clear All Filters' to reset.")
         return
 
     st.subheader(f"Repository Details ({len(repo_summaries)} repositories)")
@@ -121,30 +121,18 @@ def render_repo_table(
     caption_parts = []
     if filter_query:
         caption_parts.append(f"Filtered by: '{filter_query}'")
-    caption_parts.append("Tip: click column headers to sort — Streamlit preserves multi-column order.")
-    st.caption(" • ".join(caption_parts))
+    caption_parts.append("Tip: click column headers to sort.")
+    st.caption(" | ".join(caption_parts))
 
     df_data = []
     for repo in repo_summaries:
         last_push_dt = _parse_iso_datetime(repo.pushed_at)
-        review_links = ""
-        if repo.needs_review_pr_count > 0 and repo.needs_review_urls:
-            bullet_lines = []
-            for url in repo.needs_review_urls:
-                slug = url.rstrip("/").split("/")[-1]
-                bullet_lines.append(f"- [PR #{slug}]({url})")
-            review_links = "\n".join(bullet_lines)
 
         df_data.append(
             {
                 "Name": repo.name,
-                "Private": "🔒" if repo.private else "🔓",
-                "Stars": repo.stargazers_count,
-                "Forks": repo.forks_count,
+                "Private": "Private" if repo.private else "Public",
                 "Open Issues": repo.open_issues_count,
-                "Open PRs": repo.open_pr_count,
-                "Needs Review": repo.needs_review_pr_count,
-                "_Review Links": review_links,
                 "Language": repo.language or "N/A",
                 "Last Push": last_push_dt if last_push_dt is not None else pd.NaT,
                 "URL": repo.html_url,
@@ -154,16 +142,6 @@ def render_repo_table(
     df = pd.DataFrame(df_data)
     df_styled = df.style.format({"Last Push": format_relative_date})
 
-    def _highlight_needs_review(value: object) -> str:
-        if pd.isna(value):
-            return ""
-        try:
-            return "font-weight: 600; background-color: #fff3cd;" if int(value) > 0 else ""
-        except (TypeError, ValueError):
-            return ""
-
-    df_styled = df_styled.map(_highlight_needs_review, subset="Needs Review")
-
     st.dataframe(
         df_styled,
         width="stretch",
@@ -171,30 +149,11 @@ def render_repo_table(
         column_config={
             "Name": st.column_config.TextColumn("Name", help="Repository name", width="medium", max_chars=40),
             "URL": st.column_config.LinkColumn("URL", help="Open repository on GitHub", width="large"),
-            "Stars": st.column_config.NumberColumn("Stars", help="Number of stars", width="small"),
-            "Forks": st.column_config.NumberColumn("Forks", help="Number of forks", width="small"),
             "Open Issues": st.column_config.NumberColumn("Open Issues", help="Number of open issues", width="small"),
-            "Open PRs": st.column_config.NumberColumn(
-                "Open PRs",
-                help="Total open pull requests (drafts excluded).",
-                width="small",
-                format="%d",
-            ),
-            "Needs Review": st.column_config.NumberColumn(
-                "Needs Review",
-                help="Open pull requests awaiting your review; highlighted when attention is needed.",
-                width="small",
-                format="%d",
-            ),
-            "_Review Links": st.column_config.TextColumn(
-                "_Review Links",
-                help="Markdown bullet list of PR links awaiting your review (hidden by default for future hover tooling).",
-                width="large",
-            ),
             "Private": st.column_config.TextColumn("Visibility", help="Repository visibility", width="small"),
             "Last Push": st.column_config.Column(
                 "Last Push",
-                help="Relative time since the last push (⚠️ marks very stale repositories)",
+                help="Relative time since the last push (stale marks repositories inactive for 6+ months)",
                 width="small",
             ),
             "Language": st.column_config.TextColumn("Language", help="Primary language", width="small"),
@@ -202,11 +161,7 @@ def render_repo_table(
         column_order=[
             "Name",
             "Private",
-            "Open PRs",
-            "Needs Review",
             "Open Issues",
-            "Stars",
-            "Forks",
             "Language",
             "Last Push",
             "URL",

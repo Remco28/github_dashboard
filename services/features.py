@@ -6,28 +6,27 @@ from services.github_client import get_file_contents
 
 
 @dataclass
-class TaskItem:
-    """A single task item from NEXT_STEPS.md"""
+class FeatureItem:
+    """A single feature item from FEATURES.md"""
     text: str
-    checked: bool
+    delivered: bool
     section: str | None = None
 
 
 @dataclass
-class NextStepsDoc:
-    """Parsed NEXT_STEPS.md document for a repository"""
+class FeaturesDoc:
+    """Parsed FEATURES.md document for a repository"""
     repo_full_name: str
     raw_markdown: str | None
-    tasks: List[TaskItem]
+    features: List[FeatureItem]
     sections: List[str]
 
 
-def fetch_next_steps(owner: str, repo: str, token: str) -> str | None:
+def fetch_features(owner: str, repo: str, token: str) -> str | None:
     """
-    Fetch NEXT_STEPS.md file content from a repository.
+    Fetch FEATURES.md file content from a repository.
 
-    Attempts to load comms/NEXT_STEPS.md first and falls back to the root
-    NEXT_STEPS.md for backward compatibility.
+    Loads comms/FEATURES.md only (no fallback to root).
 
     Args:
         owner: Repository owner
@@ -37,12 +36,7 @@ def fetch_next_steps(owner: str, repo: str, token: str) -> str | None:
     Returns:
         Markdown content as string if file exists, None if not found
     """
-    # Preferred location: comms/NEXT_STEPS.md
-    file_data = get_file_contents(owner, repo, "comms/NEXT_STEPS.md", token)
-
-    # Backward-compatible fallback to root
-    if file_data is None:
-        file_data = get_file_contents(owner, repo, "NEXT_STEPS.md", token)
+    file_data = get_file_contents(owner, repo, "comms/FEATURES.md", token)
 
     if file_data is None:
         return None
@@ -59,21 +53,21 @@ def fetch_next_steps(owner: str, repo: str, token: str) -> str | None:
         return None
 
 
-def parse_next_steps(md: str, repo_full_name: str) -> NextStepsDoc:
+def parse_features(md: str, repo_full_name: str) -> FeaturesDoc:
     """
-    Parse NEXT_STEPS.md markdown content into structured data.
-    
+    Parse FEATURES.md markdown content into structured data.
+
     Args:
         md: Markdown content string
         repo_full_name: Full repository name (owner/repo)
-        
+
     Returns:
-        NextStepsDoc with parsed tasks and sections
+        FeaturesDoc with parsed features and sections
     """
-    tasks = []
+    features = []
     sections = []
     current_section = None
-    
+
     for line in md.splitlines():
         # Check for section headings (H1-H3)
         section_match = re.match(r"^(#{1,3})\s+(.*)$", line.strip())
@@ -81,36 +75,36 @@ def parse_next_steps(md: str, repo_full_name: str) -> NextStepsDoc:
             current_section = section_match.group(2).strip()
             sections.append(current_section)
             continue
-        
+
         # Check for checkbox items
         checkbox_match = re.match(r"^\s*[-*]\s+\[( |x|X)\]\s+(.*)$", line)
         if checkbox_match:
-            checked = checkbox_match.group(1).lower() == 'x'
+            delivered = checkbox_match.group(1).lower() == 'x'
             text = checkbox_match.group(2).strip()
-            tasks.append(TaskItem(
+            features.append(FeatureItem(
                 text=text,
-                checked=checked,
+                delivered=delivered,
                 section=current_section
             ))
-    
-    return NextStepsDoc(
+
+    return FeaturesDoc(
         repo_full_name=repo_full_name,
         raw_markdown=md,
-        tasks=tasks,
+        features=features,
         sections=sections
     )
 
 
-def summarize_tasks(tasks: List[TaskItem]) -> tuple[int, int]:
+def summarize_features(features: List[FeatureItem]) -> tuple[int, int]:
     """
-    Summarize task completion status.
-    
+    Summarize feature delivery status.
+
     Args:
-        tasks: List of TaskItem objects
-        
+        features: List of FeatureItem objects
+
     Returns:
-        Tuple of (open_count, done_count)
+        Tuple of (not_delivered_count, delivered_count)
     """
-    open_count = sum(1 for task in tasks if not task.checked)
-    done_count = sum(1 for task in tasks if task.checked)
-    return open_count, done_count
+    not_delivered = sum(1 for f in features if not f.delivered)
+    delivered = sum(1 for f in features if f.delivered)
+    return not_delivered, delivered

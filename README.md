@@ -1,18 +1,18 @@
-# 📊 GitHub Repository Dashboard
+# GitHub Repository Dashboard
 
-A comprehensive Streamlit dashboard that provides insights into your GitHub repositories, including visualizations, activity tracking, and productivity features to help you stay motivated and organized.
+A Streamlit dashboard that provides insights into your GitHub repositories, including visualizations and feature tracking to help you stay organized.
 
-## ✨ Features
+## Features
 
-- **Repository Overview**: Browse all your repositories with detailed stats, relative “Last Push” timings, and filtering options
-- **Interactive Visualizations**: Language distribution, commit trends, activity heatmaps, and per-repository analytics
-- **NEXT_STEPS Integration**: Parse and display NEXT_STEPS.md files from your repositories with task aggregation, configurable processing limits (10-100 repos), and smart prioritization (preferred path `comms/NEXT_STEPS.md`, root fallback supported)
+- **Repository Overview**: Browse all your repositories with key metadata, relative "Last Push" timings, and filtering options
+- **Interactive Visualizations**: Language distribution, commit trends (default: weekly), activity heatmaps, and per-repository analytics
+- **Features Integration**: Parse and display FEATURES.md files from your repositories with feature aggregation, configurable processing limits (10-100 repos), and smart prioritization
 - **Smart Caching**: Intelligent caching system to respect GitHub API rate limits
-- **Per‑Section Refresh**: Refresh Visualizations or NEXT_STEPS independently without clearing the whole cache
-- **Cache Telemetry**: Sidebar shows cache hits, misses, hit rate, and top cached functions (no PII)
+- **Per-Section Refresh**: Refresh Visualizations or Features independently without clearing the whole cache
+- **Cache Telemetry**: Sidebar shows cache hits, misses, hit rate, and top cached functions
 - **Settings Help**: Built-in guidance for setup and troubleshooting
 
-## 🚀 Quickstart
+## Quickstart
 
 1. **Clone the repository**
    ```bash
@@ -44,7 +44,7 @@ A comprehensive Streamlit dashboard that provides insights into your GitHub repo
 
 The dashboard will open in your web browser at `http://localhost:8501`.
 
-## ⚙️ Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -57,28 +57,9 @@ GITHUB_TOKEN=your_github_personal_access_token
 GITHUB_USERNAME=your_github_username
 ```
 
-### Theming (optional)
-
-You can adjust the app’s look using Streamlit’s config file at `.streamlit/config.toml`:
-
-```
-[theme]
-base = "light"
-primaryColor = "#1f77b4"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F6F8FA"
-textColor = "#262730"
-font = "sans serif"
-```
-
-Notes:
-- Theme controls colors and font globally without custom CSS.
-- It doesn’t hide header controls (menu/deploy) or reposition Plotly toolbars; those were handled with targeted CSS.
-- Adjusting theme can reduce custom CSS surface area for future tweaks.
-
 ### GitHub Token Setup
 
-1. Go to GitHub Settings → Developer settings → Personal access tokens
+1. Go to GitHub Settings - Developer settings - Personal access tokens
 2. Click "Generate new token (classic)"
 3. Select scopes:
    - `public_repo` - For access to public repositories only
@@ -92,7 +73,7 @@ Notes:
 - **All repositories (recommended)**: `repo` scope
 - **Rate limits**: 5,000 requests/hour (authenticated), 60 requests/hour (unauthenticated)
 
-## 🔧 Running the Application
+## Running the Application
 
 Once configured, start the dashboard:
 
@@ -106,7 +87,7 @@ The application will:
 3. Display interactive dashboard with multiple sections:
    - Repository statistics and table
    - Visual analytics and charts
-   - NEXT_STEPS task integration
+   - Features tracking
 
 ## Testing
 
@@ -132,7 +113,7 @@ pytest tests/test_analytics.py
 
 Tests are located in the `tests/` directory. Use `pytest-mock` for mocking external dependencies like GitHub API calls.
 
-## 🛠️ Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -153,9 +134,9 @@ Tests are located in the `tests/` directory. Use `pytest-mock` for mocking exter
 - Try the "Refresh" button to fetch fresh data
 - Check the "Settings Help" panel in the sidebar for guidance
 
-**Missing NEXT_STEPS Data**
-- Ensure each repository has `comms/NEXT_STEPS.md` (preferred) or a legacy root-level `NEXT_STEPS.md`
-- Files are processed based on the configurable "NEXT_STEPS Processing Limit" (10-100 repos)
+**Missing Features Data**
+- Ensure repositories have `comms/FEATURES.md` files
+- Files are processed based on the configurable "Features Processing Limit" (10-100 repos)
 - Repositories are prioritized by recent activity for processing
 - Use repository filters to focus on specific projects
 
@@ -170,26 +151,11 @@ The dashboard includes intelligent caching to optimize performance:
 - **Cache Stats**: View current cache status in the sidebar
 - **Cache Telemetry**: See hits, misses, hit rate, and top cached functions for observability
 - **Refresh Button**: Force refresh of repository list
-- **Section Refresh**: Refresh just a section (Charts, NEXT_STEPS) without clearing the cache
+- **Section Refresh**: Refresh just a section (Charts, Features) without clearing the cache
 - **Bypass Cache**: Temporarily disable all caching (use sparingly)
 - **Clear Cache**: Remove all cached data and start fresh
 
-## 📸 Screenshots
-
-### Dashboard Overview
-![Dashboard Overview](docs/screenshots/dashboard.png)
-*Main dashboard showing repository statistics, filters, and data table*
-
-### Visualizations
-![Visualizations](docs/screenshots/visualizations.png)
-*Interactive charts showing language distribution and commit activity*
-
-### NEXT_STEPS Integration
-![NEXT_STEPS Integration](docs/screenshots/next_steps.png)
-*Task aggregation and repository-specific NEXT_STEPS display*
-The dashboard looks for `comms/NEXT_STEPS.md` first (falling back to the legacy root `NEXT_STEPS.md`). See `docs/NEXT_STEPS.template.md` for a recommended file structure.
-
-## 📋 Project Structure
+## Project Structure
 
 The application follows a modular architecture:
 
@@ -198,42 +164,46 @@ github_dashboard/
 ├── app.py                 # Main Streamlit application
 ├── config/               # Configuration management
 ├── services/             # Core business logic
+│   ├── features.py       # FEATURES.md fetching and parsing
+│   ├── analytics.py      # Chart data aggregation
+│   ├── cache.py          # TTL caching layer
+│   └── github_client.py  # GitHub API client
 ├── ui/                   # User interface modules
 │   ├── branding.py       # App title/logo helpers
 │   ├── charts.py         # Plotly chart renderers
-│   ├── checklists.py     # NEXT_STEPS UI
+│   ├── checklists.py     # Features UI
 │   ├── controls.py       # Sidebar controls and settings help
 │   ├── headers.py        # Section header styles and renderer
 │   ├── metrics.py        # Metric cards and progress circle
 │   ├── notifications.py  # Errors, cache info, last-updated
 │   └── styles.py         # Global CSS/JS injectors
 ├── models/               # Data models and types
-├── docs/                 # Documentation and screenshots
+├── docs/                 # Documentation
 ├── comms/                # Development workflow management
 └── requirements.txt      # Python dependencies
 ```
 
-## 🗺️ Roadmap & Architecture
+## Roadmap & Architecture
 
 For detailed information about the project's architecture and future plans:
 
 - [**Architecture Documentation**](docs/ARCHITECTURE.md) - System design and component interactions
 - [**Development Roadmap**](docs/ROADMAP.md) - Feature timeline and implementation phases
 
-## 🚢 Deploy
+## Deploy
 
-See the Deployment Guide for Streamlit Community Cloud and Docker instructions:
+Deploy using Coolify with Nixpacks. See the deployment guide for step-by-step instructions:
 - [**Deployment Guide**](docs/DEPLOYMENT.md)
 
-## 🤝 Contributing
+## Contributing
 
 This project uses a structured development workflow with separate Architect and Developer roles. See the `comms/` directory for task specifications and development logs.
 
-## 📝 License
+## License
 
 This project is open source and available under the MIT License.
 
-## 🆘 Support
+## Support
 
 If you encounter issues:
 
