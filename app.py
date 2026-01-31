@@ -5,7 +5,6 @@ import streamlit as st
 
 from config.settings import get_settings
 from services.analytics import (
-    attach_pull_request_metadata,
     commits_over_time,
     commits_per_repo,
     filter_repos,
@@ -16,20 +15,19 @@ from services.analytics import (
 from services.cache import (
     cache_metrics,
     cache_stats,
-    cached_fetch_next_steps,
+    cached_fetch_features,
     cached_list_repo_commits,
-    cached_list_user_events,
     cached_list_user_repos,
     clear_cache,
 )
 from services.errors import RateLimitError
 from services.github_client import to_repo_summary
-from services.next_steps import parse_next_steps
+from services.features import parse_features
 from ui.charts import render_commits_bar, render_heatmap, render_language_pie, render_trend_line
 from ui.checklists import (
     render_aggregate,
-    render_missing_next_steps_guidance,
-    render_repo_next_steps,
+    render_missing_features_guidance,
+    render_repo_features,
 )
 from ui.controls import (
     render_repo_selector_with_search,
@@ -38,7 +36,6 @@ from ui.controls import (
 from ui.tables import render_repo_table
 from ui.metrics import render_stat_cards
 from ui.headers import render_section_header
-from ui.activity_feed import render_activity_feed
 from ui.styles import inject_global_styles, inject_header_deploy_hider
 from ui.branding import render_app_title
 from ui.notifications import (
@@ -50,7 +47,7 @@ from ui.notifications import (
 
 st.set_page_config(
     page_title="GITHUB DASHBOARD",
-    page_icon="📊",
+    page_icon="",
     layout="wide",
     menu_items=None
 )
@@ -62,11 +59,11 @@ inject_header_deploy_hider()
 def main():
     # Custom title with logo below
     render_app_title()
-    
+
     try:
         # Load configuration
         settings = get_settings()
-        
+
         # Sidebar logo (centered)
         col1, col2, col3 = st.sidebar.columns([1, 2, 1])
         with col2:
@@ -74,30 +71,30 @@ def main():
 
         # Sidebar for filters
         st.sidebar.header("Filters")
-        
+
         # Handle refresh functionality
-        refresh_pressed = st.sidebar.button("🔄 Refresh", help="Refresh repository data")
-        
+        refresh_pressed = st.sidebar.button("Refresh", help="Refresh repository data")
+
         # Cache controls (need to be defined early for cache_bust calculation)
         bypass_cache = st.sidebar.checkbox(
             "Bypass Cache",
             help="Force fresh data fetches, ignoring cached data"
         )
-        
+
         # Use cache_bust parameter to bypass cache when refresh is pressed or bypass is checked
         cache_bust = str(time.time()) if (refresh_pressed or bypass_cache) else None
-        
+
         # Repository fetch with error handling
         raw_repos = []
         repo_fetch_time = None
-        
+
         try:
             # Show loading state
             with st.spinner("Loading repositories..."):
                 # Fetch repositories
                 raw_repos = cached_list_user_repos(
-                    settings.github_username, 
-                    settings.github_token, 
+                    settings.github_username,
+                    settings.github_token,
                     cache_bust
                 )
                 repo_fetch_time = time.time()
@@ -113,27 +110,27 @@ def main():
                 )
             except Exception:
                 raw_repos = []
-        
+
         # Convert to RepoSummary objects
         all_repo_summaries = [to_repo_summary(repo) for repo in raw_repos]
-        
+
         # Get available languages for filter
         available_languages = languages_set(all_repo_summaries)
-        
+
         # Sidebar filter controls
         selected_languages = st.sidebar.multiselect(
             "Languages",
             options=available_languages,
             help="Filter repositories by programming language"
         )
-        
+
         visibility_option = st.sidebar.radio(
             "Visibility",
             ["All", "Public", "Private"],
             index=0,
             help="Filter by repository visibility"
         )
-        
+
         activity_days = st.sidebar.slider(
             "Activity Window (days)",
             min_value=7,
@@ -141,64 +138,64 @@ def main():
             value=90,
             help="Show repositories with activity in the last N days"
         )
-        
+
         # Visualization controls
         st.sidebar.markdown("---")
-        st.sidebar.header("📊 Visualizations")
-        
+        st.sidebar.header("Visualizations")
+
         max_repos = st.sidebar.selectbox(
             "Max Repositories for Charts",
             options=[5, 10, 20, 50, 100],
             index=1,
             help="Number of repositories to analyze for commit-based charts"
         )
-        
-        # NEXT_STEPS processing controls
-        st.sidebar.markdown("---")
-        st.sidebar.header("📝 NEXT_STEPS")
 
-        next_steps_limit = st.sidebar.slider(
-            "NEXT_STEPS Processing Limit",
+        # Features processing controls
+        st.sidebar.markdown("---")
+        st.sidebar.header("Features")
+
+        features_limit = st.sidebar.slider(
+            "Features Processing Limit",
             min_value=10,
             max_value=100,
             value=20,
-            help="Maximum number of repositories to process for NEXT_STEPS analysis"
+            help="Maximum number of repositories to process for features analysis"
         )
-        
-        
+
+
         # Cache controls (continued)
         st.sidebar.markdown("---")
-        st.sidebar.header("💾 Cache Controls")
-        
+        st.sidebar.header("Cache Controls")
+
         # Toggle for showing cache stats
         show_cache_stats = getattr(st.sidebar, "toggle", st.sidebar.checkbox)(
-            "🤓", help="Display cache stats", key="show_cache_stats"
+            "Show Stats", help="Display cache stats", key="show_cache_stats"
         )
-        
-        if st.sidebar.button("🧹 Clear Cache"):
+
+        if st.sidebar.button("Clear Cache"):
             clear_cache()
             st.sidebar.success("Cache cleared!")
             st.rerun()
-        
+
         # Show cache stats with telemetry only if toggle is enabled
         if show_cache_stats:
             stats = cache_stats()
             telemetry = cache_metrics()
             merged_stats = {**stats, **telemetry}
             render_cache_info(merged_stats, location="sidebar")
-        
+
         # Settings help panel
         render_settings_help(settings.github_username)
-        
+
         # Clear filters button
-        if st.sidebar.button("🗑️ Clear All Filters"):
+        if st.sidebar.button("Clear All Filters"):
             st.rerun()
 
         # Ensure inline filter has a default session value ready for downstream calculations.
         if "table_filter_query" not in st.session_state:
             st.session_state["table_filter_query"] = ""
         table_filter_query_value = st.session_state.get("table_filter_query", "")
-        
+
         # Calculate time window for commit-based charts
         # Use timezone-aware UTC per Python 3.12+ deprecation guidance
         until_dt = datetime.now(timezone.utc)
@@ -222,42 +219,20 @@ def main():
             query=filter_query_clean or None
         )
 
-        pr_enrichment_error: Exception | None = None
-        try:
-            attach_pull_request_metadata(
-                filtered_repos,
-                settings.github_token,
-                settings.github_username,
-                cache_bust=cache_bust,
-            )
-        except RateLimitError as exc:
-            pr_enrichment_error = exc
-        except Exception as exc:
-            pr_enrichment_error = exc
-
-        if pr_enrichment_error:
-            for repo in filtered_repos:
-                repo.open_pr_count = 0
-                repo.needs_review_pr_count = 0
-                repo.needs_review_urls = ()
-
         # Display summary statistics using components
         render_stat_cards(filtered_repos)
-        
+
         # Show last updated info
         render_last_updated(repo_fetch_time, "Repository data")
-        
-        # Display repositories table using components
-        if pr_enrichment_error:
-            render_section_error("Pull Requests", pr_enrichment_error)
 
+        # Display repositories table using components
         table_section = st.container()
         with table_section:
             st.text_input(
                 "Filter repositories by name",
-                placeholder="Type part of a repository name…",
+                placeholder="Type part of a repository name...",
                 key="table_filter_query",
-                help="Filter applies to the table plus charts and NEXT_STEPS sections.",
+                help="Filter applies to the table plus charts and Features sections.",
             )
 
             filter_query_display = st.session_state.get("table_filter_query", "").strip()
@@ -266,7 +241,7 @@ def main():
                 filtered_repos,
                 filter_query=filter_query_display or None,
             )
-        
+
         # Show filter summary
         if len(filtered_repos) != len(all_repo_summaries):
             filters = []
@@ -286,7 +261,7 @@ def main():
             st.info(f"Showing {len(filtered_repos)} of {len(all_repo_summaries)} repositories {filter_summary}")
         else:
             st.info(f"Showing all {len(all_repo_summaries)} repositories")
-        
+
         # Visualizations Section
         st.markdown("---")
         with st.container():
@@ -294,23 +269,22 @@ def main():
 
             if filtered_repos:
                 # Refresh button for charts
-                charts_refresh_pressed = st.button("🔄 Refresh Charts", key="charts_refresh", help="Refresh chart data bypassing cache")
+                charts_refresh_pressed = st.button("Refresh Charts", key="charts_refresh", help="Refresh chart data bypassing cache")
                 charts_cache_bust = str(time.time()) if charts_refresh_pressed else None
 
                 # Create responsive 2x2 chart layout
                 col1, col2 = st.columns(2)
-                
+
                 with col1:
                     # Language Distribution Pie Chart
                     lang_dist = language_distribution(filtered_repos)
                     render_language_pie(lang_dist)
-                    
-                    # Commits Over Time
-                    default_freq = "Weekly" if activity_days > 120 else "Daily"
-                    if "trend_freq" not in st.session_state:
-                        st.session_state["trend_freq"] = default_freq
 
-                    current_trend_freq = st.session_state.get("trend_freq", default_freq)
+                    # Commits Over Time - Default to Weekly
+                    if "trend_freq" not in st.session_state:
+                        st.session_state["trend_freq"] = "Weekly"
+
+                    current_trend_freq = st.session_state.get("trend_freq", "Weekly")
                     freq = "D" if current_trend_freq == "Daily" else "W"
                     try:
                         trend_data = commits_over_time(
@@ -332,11 +306,12 @@ def main():
                     st.radio(
                         "Trend Granularity",
                         ["Daily", "Weekly"],
+                        index=1,  # Default to Weekly
                         key="trend_freq",
                         help="Choose daily or weekly aggregation for the trend chart",
                         horizontal=True
                     )
-                
+
                 with col2:
                     # Commits per Repository Bar Chart
                     try:
@@ -346,7 +321,7 @@ def main():
                         render_section_error("Commits per Repository", e)
                     except Exception as e:
                         render_section_error("Commits per Repository", e)
-                    
+
                     # Activity Heatmap
                     try:
                         heatmap_data = heatmap_counts(filtered_repos, settings.github_token, since_iso, until_iso, max_repos, cache_bust=charts_cache_bust)
@@ -357,73 +332,48 @@ def main():
                         render_section_error("Activity Heatmap", e)
 
             else:
-                st.info("📊 No repositories available for visualization. Try adjusting your filters.")
-        
-        # Recent Activity Section
+                st.info("No repositories available for visualization. Try adjusting your filters.")
+
+        # Features Section
         st.markdown("---")
         with st.container():
-            render_section_header("Recent Activity", level='h2', accent='green')
-
-            activity_error: Exception | None = None
-            recent_events: list[dict] = []
-
-            with st.spinner("Loading recent activity..."):
-                try:
-                    recent_events = cached_list_user_events(
-                        settings.github_username,
-                        settings.github_token,
-                        cache_bust
-                    )
-                except RateLimitError as exc:
-                    activity_error = exc
-                except Exception as exc:
-                    activity_error = exc
-
-            if activity_error:
-                render_section_error("Recent Activity", activity_error)
-            else:
-                render_activity_feed(recent_events, current_username=settings.github_username)
-
-        # NEXT_STEPS Section
-        st.markdown("---")
-        with st.container():
-            render_section_header("Project Tasks", level='h2', accent='gold')
+            render_section_header("Features", level='h2', accent='gold')
 
             if filtered_repos:
-                # Refresh button for NEXT_STEPS
-                next_steps_refresh_pressed = st.button("🔄 Refresh Tasks", key="next_steps_refresh", help="Refresh NEXT_STEPS data bypassing cache")
-                next_steps_cache_bust = str(time.time()) if next_steps_refresh_pressed else None
+                # Refresh button for Features
+                features_refresh_pressed = st.button("Refresh Features", key="features_refresh", help="Refresh features data bypassing cache")
+                features_cache_bust = str(time.time()) if features_refresh_pressed else None
 
-                with st.spinner("Loading NEXT_STEPS data..."):
+                with st.spinner("Loading features data..."):
                     # Sort repos by recent activity (pushed_at descending) and limit processing
                     sorted_repos = sorted(filtered_repos, key=lambda r: r.pushed_at or "", reverse=True)
-                    repos_to_process = sorted_repos[:next_steps_limit]
+                    repos_to_process = sorted_repos[:features_limit]
 
-                    # Fetch NEXT_STEPS.md files
-                    next_steps_docs = {}
+                    # Fetch FEATURES.md files
+                    features_docs = {}
                     missing_files_count = 0
 
                     # Add progress indicator for large processing sets
                     progress_bar = None
                     if len(repos_to_process) > 20:
-                        progress_bar = st.progress(0, text="Processing NEXT_STEPS files...")
-                        st.info(f"🔄 Processing {len(repos_to_process)} repositories for NEXT_STEPS analysis...")
+                        progress_bar = st.progress(0, text="Processing FEATURES.md files...")
+                        st.info(f"Processing {len(repos_to_process)} repositories for features analysis...")
 
                     for i, repo in enumerate(repos_to_process):
                         owner, name = repo.full_name.split('/', 1)
 
                         try:
-                            md_content = cached_fetch_next_steps(owner, name, settings.github_token, next_steps_cache_bust)
+                            md_content = cached_fetch_features(owner, name, settings.github_token, features_cache_bust)
                             if md_content:
-                                doc = parse_next_steps(md_content, repo.full_name)
-                                next_steps_docs[repo.full_name] = doc
+                                doc = parse_features(md_content, repo.full_name)
+                                features_docs[repo.full_name] = doc
                             else:
                                 missing_files_count += 1
                         except RateLimitError:
                             # Skip this repo due to rate limiting, but don't show individual errors
                             missing_files_count += 1
                             if len(repos_to_process) > 20:
-                                st.warning("⚠️ Rate limit encountered during NEXT_STEPS processing. Some repositories may be skipped.")
+                                st.warning("Rate limit encountered during features processing. Some repositories may be skipped.")
                         except Exception:
                             # Skip this repo due to other errors
                             missing_files_count += 1
@@ -431,70 +381,70 @@ def main():
                         # Update progress bar
                         if progress_bar and len(repos_to_process) > 20:
                             progress = (i + 1) / len(repos_to_process)
-                            progress_bar.progress(progress, text=f"Processing NEXT_STEPS files... ({i + 1}/{len(repos_to_process)})")
+                            progress_bar.progress(progress, text=f"Processing FEATURES.md files... ({i + 1}/{len(repos_to_process)})")
 
                     # Complete progress bar
                     if progress_bar:
                         progress_bar.empty()
 
-                    # Extract tasks by repo for aggregate view
-                    tasks_by_repo = {
-                        repo_name: doc.tasks 
-                        for repo_name, doc in next_steps_docs.items()
+                    # Extract features by repo for aggregate view
+                    features_by_repo = {
+                        repo_name: doc.features
+                        for repo_name, doc in features_docs.items()
                     }
-                    
+
                     # Render aggregate view
-                    render_aggregate(tasks_by_repo)
-                    
-                    # Store next_steps_docs for use in separate Task List Viewer section
-                    st.session_state['next_steps_docs'] = next_steps_docs
-                    
+                    render_aggregate(features_by_repo)
+
+                    # Store features_docs for use in separate Feature Details section
+                    st.session_state['features_docs'] = features_docs
+
                     # Show guidance for missing files
                     if missing_files_count > 0:
-                        render_missing_next_steps_guidance(missing_files_count)
-                    
+                        render_missing_features_guidance(missing_files_count)
+
                     # Processing summary
                     processed_count = len(repos_to_process)
                     total_filtered = len(filtered_repos)
 
                     if processed_count < total_filtered:
                         st.info(
-                            f"📊 Processed {processed_count} of {total_filtered} repositories. "
-                            f"Repositories are sorted by recent activity and limited to {next_steps_limit} for performance."
+                            f"Processed {processed_count} of {total_filtered} repositories. "
+                            f"Repositories are sorted by recent activity and limited to {features_limit} for performance."
                         )
-        
+
             else:
-                st.info("📝 No repositories available for NEXT_STEPS analysis. Try adjusting your filters.")
+                st.info("No repositories available for features analysis. Try adjusting your filters.")
                 # Clear session state if no repos
-                st.session_state['next_steps_docs'] = {}
-        
-        # Task List Viewer Section (separate from Project Tasks)
+                st.session_state['features_docs'] = {}
+
+        # Feature Details Section (separate from Features)
         st.markdown("---")
         with st.container():
-            render_section_header("Task List Viewer", level='h2', accent='green')
-            
-            # Get next_steps_docs from session state
-            next_steps_docs = st.session_state.get('next_steps_docs', {})
-            
-            if next_steps_docs:
+            render_section_header("Feature Details", level='h2', accent='green')
+
+            # Get features_docs from session state
+            features_docs = st.session_state.get('features_docs', {})
+
+            if features_docs:
                 selected_repo = render_repo_selector_with_search(
-                    options=list(next_steps_docs.keys()),
-                    key="next_steps_repo_selector",
-                    help_text="Choose a repository to see its NEXT_STEPS.md tasks"
+                    options=list(features_docs.keys()),
+                    key="features_repo_selector",
+                    help_text="Choose a repository to see its FEATURES.md"
                 )
-                
+
                 if selected_repo:
-                    render_repo_next_steps(next_steps_docs[selected_repo])
+                    render_repo_features(features_docs[selected_repo])
             else:
-                st.info("📋 No task data available. Please load Project Tasks data first.")
-        
+                st.info("No feature data available. Please load Features data first.")
+
     except RuntimeError as e:
         st.error(f"Configuration Error: {e}")
         st.info(
             "Please ensure your `.env` file contains valid `GITHUB_TOKEN` and "
             "`GITHUB_USERNAME` values. See `.env.example` for the required format."
         )
-    
+
     except Exception as e:
         st.error(f"An error occurred: {e}")
         st.info("Please check your GitHub token permissions and network connection.")

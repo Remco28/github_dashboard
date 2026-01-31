@@ -36,7 +36,7 @@
 - **GitHub API Client:** `services/github_client.py`
 - **Cache Layer:** `services/cache.py`
 - **Analytics:** `services/analytics.py`
-- **NEXT_STEPS Parser:** `services/next_steps.py`
+- **Features Parser:** `services/features.py`
 - **Error Handling:** `services/errors.py`
 
 ### UI Components
@@ -47,7 +47,7 @@
 - **Tables:** `ui/tables.py`
 - **Metrics/Cards:** `ui/metrics.py`
 - **Controls & Selectors:** `ui/controls.py`
-- **Checklists (NEXT_STEPS):** `ui/checklists.py`
+- **Checklists (Features):** `ui/checklists.py`
 - **Notifications & Errors:** `ui/notifications.py`
 
 ### Models & Config

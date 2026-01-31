@@ -10,7 +10,7 @@ GITHUB_API = "https://api.github.com"
 def _request_with_retry(method: str, url: str, headers: dict, params: dict = None, max_retries: int = 2, backoff: float = 0.5) -> requests.Response:
     """
     Make HTTP request with bounded retries for transient failures.
-    
+
     Args:
         method: HTTP method (GET, POST, etc.)
         url: Request URL
@@ -18,22 +18,22 @@ def _request_with_retry(method: str, url: str, headers: dict, params: dict = Non
         params: Query parameters
         max_retries: Maximum number of retry attempts
         backoff: Backoff delay in seconds between retries
-        
+
     Returns:
         Response object
-        
+
     Raises:
         Exception: For non-transient errors or after max retries
     """
     last_exception = None
-    
+
     for attempt in range(max_retries + 1):
         try:
             response = requests.request(method, url, headers=headers, params=params, timeout=10)
             # Classify response for API errors
             classify_response(response)
             return response
-        
+
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
             last_exception = e
             if attempt < max_retries:
@@ -44,7 +44,7 @@ def _request_with_retry(method: str, url: str, headers: dict, params: dict = Non
         except Exception as e:
             # For API errors (AuthError, RateLimitError, etc.), don't retry
             raise e
-    
+
     # This shouldn't be reached, but just in case
     if last_exception:
         raise last_exception
@@ -54,7 +54,7 @@ def parse_next_link(link_header: str | None) -> str | None:
     """Parse the Link header to extract the next page URL."""
     if not link_header:
         return None
-    
+
     links = link_header.split(',')
     for link in links:
         parts = link.strip().split(';')
@@ -73,17 +73,17 @@ def list_user_repos(username: str, token: str, include_private: bool = True) -> 
         "Authorization": f"token {token}",
         "Accept": "application/vnd.github+json"
     }
-    
+
     repos = []
     while url:
         response = _request_with_retry("GET", url, headers)
-        
+
         page_repos = response.json()
         repos.extend(page_repos)
-        
+
         # Get next page URL from Link header
         url = parse_next_link(response.headers.get("Link"))
-    
+
     return repos
 
 
@@ -93,8 +93,6 @@ def to_repo_summary(repo: Dict) -> RepoSummary:
         name=repo["name"],
         full_name=repo["full_name"],
         private=repo["private"],
-        stargazers_count=repo.get("stargazers_count", 0),
-        forks_count=repo.get("forks_count", 0),
         open_issues_count=repo.get("open_issues_count", 0),
         pushed_at=repo.get("pushed_at", ""),
         language=repo.get("language"),
@@ -112,7 +110,7 @@ def get_repo_languages(owner: str, repo: str, token: str) -> Dict[str, int]:
         "Authorization": f"token {token}",
         "Accept": "application/vnd.github+json"
     }
-    
+
     try:
         response = _request_with_retry("GET", url, headers)
         return response.json()
@@ -124,15 +122,15 @@ def get_repo_languages(owner: str, repo: str, token: str) -> Dict[str, int]:
 def list_repo_commits(owner: str, repo: str, token: str, since: str, until: str, max_pages: int = 2) -> List[Dict]:
     """
     List commits for a repository within a time window with bounded pagination.
-    
+
     Args:
         owner: Repository owner
         repo: Repository name
         token: GitHub token
         since: ISO datetime string (start of window)
-        until: ISO datetime string (end of window)  
+        until: ISO datetime string (end of window)
         max_pages: Maximum number of pages to fetch (default 2 to limit API calls)
-        
+
     Returns:
         List of commit dictionaries
     """
@@ -146,114 +144,41 @@ def list_repo_commits(owner: str, repo: str, token: str, since: str, until: str,
         "until": until,
         "per_page": 100
     }
-    
+
     commits = []
     pages_fetched = 0
-    
+
     while url and pages_fetched < max_pages:
         try:
             response = _request_with_retry("GET", url, headers, params)
-            
+
             page_commits = response.json()
             commits.extend(page_commits)
-            
+
             pages_fetched += 1
-            
+
             # Get next page URL from Link header
             url = parse_next_link(response.headers.get("Link"))
             # Clear params for subsequent requests since URL contains them
             params = None
-            
+
         except NotFoundError:
             # Repository might be empty or not accessible
             break
-    
+
     return commits
-
-
-def list_repo_pull_requests(owner: str, repo: str, token: str, state: str = "open") -> List[Dict]:
-    """
-    Retrieve pull requests for a repository with pagination support.
-
-    Args:
-        owner: Repository owner
-        repo: Repository name
-        token: GitHub token
-        state: Pull request state filter (defaults to "open")
-
-    Returns:
-        List of pull request dictionaries ordered by most recently updated first.
-    """
-    url = f"{GITHUB_API}/repos/{owner}/{repo}/pulls"
-    headers = {
-        "Authorization": f"token {token}",
-        "Accept": "application/vnd.github+json"
-    }
-    params = {
-        "state": state,
-        "per_page": 100,
-        "sort": "updated",
-        "direction": "desc"
-    }
-
-    pull_requests: List[Dict] = []
-
-    while url:
-        try:
-            response = _request_with_retry("GET", url, headers, params)
-        except NotFoundError:
-            # Repository access revoked or PRs disabled.
-            return []
-
-        pull_requests.extend(response.json())
-
-        # GitHub provides pagination via the Link header.
-        url = parse_next_link(response.headers.get("Link"))
-        params = None  # Subsequent requests contain query params in URL.
-
-    return pull_requests
-
-
-def list_user_events(username: str, token: str, per_page: int = 30) -> List[Dict]:
-    """
-    Fetch the most recent activity events for a user.
-
-    Args:
-        username: GitHub username whose events will be fetched.
-        token: Personal access token to authenticate the request.
-        per_page: Number of events to request from the API (max 100).
-
-    Returns:
-        List of event dictionaries sorted with the most recent first.
-    """
-    url = f"{GITHUB_API}/users/{username}/events"
-    headers = {
-        "Authorization": f"token {token}",
-        "Accept": "application/vnd.github+json"
-    }
-    params = {"per_page": per_page}
-
-    response = _request_with_retry("GET", url, headers, params)
-    events: List[Dict] = response.json()
-
-    # API returns newest first, but ensure the ordering explicitly.
-    return sorted(
-        events,
-        key=lambda event: event.get("created_at", ""),
-        reverse=True
-    )
 
 
 def get_file_contents(owner: str, repo: str, path: str, token: str) -> dict | None:
     """
     Get file contents from a repository via the GitHub Contents API.
-    
+
     Args:
         owner: Repository owner
-        repo: Repository name  
+        repo: Repository name
         path: Path to the file within the repository
         token: GitHub token
-        
+
     Returns:
         Response JSON dict if file exists, None if 404 (file not found)
     """
@@ -262,7 +187,7 @@ def get_file_contents(owner: str, repo: str, path: str, token: str) -> dict | No
         "Authorization": f"token {token}",
         "Accept": "application/vnd.github+json"
     }
-    
+
     try:
         response = _request_with_retry("GET", url, headers)
         return response.json()
